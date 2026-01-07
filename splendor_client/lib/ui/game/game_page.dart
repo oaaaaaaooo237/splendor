@@ -240,7 +240,17 @@ class _GamePageState extends ConsumerState<GamePage> {
         child: SafeArea(
         child: Stack(
           children: [
-            // BackgroundTexture...
+            // BackgroundTexture
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.3,
+                child: Image.asset(
+                  'assets/images/ui/board_bg.png',
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(color: const Color(0xFF121212)),
+                ),
+              ),
+            ),
             
             Column(
               children: [
@@ -503,23 +513,63 @@ class _GamePageState extends ConsumerState<GamePage> {
   }
 
   Widget _buildNobleTile(Noble noble) {
+    // Map noble ID to corresponding generated asset if exists, else fallback
+    String assetPath = 'assets/images/nobles/${noble.id}.png';
+    
     return Container(
       width: 80,
       height: 80,
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: const Color(0xFF3E2723),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
-        // In real app, render noble requirements here
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.amber.withOpacity(0.5), width: 1.5),
+        boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 4, offset: Offset(2, 2))],
       ),
-      child: Center(child: Text("${noble.points}", style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white))),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(6.5),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(
+              assetPath,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(color: Colors.brown[900]),
+            ),
+            // Points Overlay
+            Positioned(
+              top: 4, left: 4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  "${noble.points}", 
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)
+                ),
+              ),
+            ),
+            // Requirements Overlay (Mini)
+            Positioned(
+              bottom: 4, right: 4,
+              child: Row(
+                children: noble.requirements.entries.map((e) => Padding(
+                  padding: const EdgeInsets.only(left: 2),
+                  child: GemToken(gem: e.key, size: 14, count: e.value, showShadow: false),
+                )).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildCardRow(List<SplendorCard> cards, Color tierColor) {
     return SizedBox(
-      height: 100,
+      height: 120, // Increased for better visibility
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
@@ -527,40 +577,69 @@ class _GamePageState extends ConsumerState<GamePage> {
         itemBuilder: (ctx, i) {
           final card = cards[i];
           final isSelected = _draftCard?.id == card.id;
+          final bgAsset = 'assets/images/cards/level${card.tier}.png';
           
           return GestureDetector(
             onTap: () => _onCardTap(card),
             onLongPress: () => _onCardLongPress(card),
-            child: Container(
-              width: 70,
-              margin: const EdgeInsets.all(4),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 85,
+              margin: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Colors.grey[850],
-                borderRadius: BorderRadius.circular(6),
-                border: Border(
-                  bottom: BorderSide(color: tierColor, width: 3),
-                  top: isSelected ? const BorderSide(color: Colors.white, width: 2) : BorderSide.none,
-                  left: isSelected ? const BorderSide(color: Colors.white, width: 2) : BorderSide.none,
-                  right: isSelected ? const BorderSide(color: Colors.white, width: 2) : BorderSide.none,
+                color: Colors.grey[900],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isSelected ? Colors.white : tierColor.withValues(alpha: 0.5),
+                  width: isSelected ? 2.5 : 1,
                 ),
-                boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 4, offset: Offset(2, 2))],
-              ),
-              child: Column(
-                children: [
-                  // Points
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Text("${card.points}", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                    ),
-                  ),
-                  // Gem Cost (Mini)
-                  const Spacer(),
-                  // Bonus Gem
-                  Icon(Icons.diamond, size: 16, color: _getGemColor(card.bonusGem)),
-                  const SizedBox(height: 4),
+                boxShadow: [
+                  BoxShadow(
+                    color: isSelected ? tierColor.withValues(alpha: 0.4) : Colors.black45,
+                    blurRadius: isSelected ? 12 : 4,
+                    offset: const Offset(2, 2)
+                  )
                 ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(7),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Background Image
+                    Image.asset(
+                      bgAsset,
+                      fit: BoxFit.cover,
+                      opacity: const AlwaysStoppedAnimation(0.7),
+                    ),
+                    // Points (Top Left)
+                    if (card.points > 0)
+                      Positioned(
+                        top: 4, left: 4,
+                        child: Text(
+                          "${card.points}", 
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white, shadows: [Shadow(blurRadius: 4)])
+                        ),
+                      ),
+                    // Bonus Gem (Top Right)
+                    Positioned(
+                      top: 4, right: 4,
+                      child: GemToken(gem: card.bonusGem, size: 24),
+                    ),
+                    // Cost (Bottom Row)
+                    Positioned(
+                      bottom: 4, left: 4, right: 4,
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 2,
+                        runSpacing: 2,
+                        children: card.cost.entries.where((e) => e.value > 0).map((e) => 
+                          GemToken(gem: e.key, size: 16, count: e.value, showShadow: false)
+                        ).toList(),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ).animate().slideX(begin: 0.2, delay: (100 * i).ms),
           );

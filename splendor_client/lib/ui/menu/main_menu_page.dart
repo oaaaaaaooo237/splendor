@@ -48,15 +48,19 @@ class _MainMenuPageState extends ConsumerState<MainMenuPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Header / Logo
-              const Text(
-                'SPLENDOR',
-                style: TextStyle(
-                  fontSize: 56, 
-                  fontWeight: FontWeight.bold, 
-                  letterSpacing: 8,
-                  fontFamily: 'Roboto', // Or standard
-                  color: Colors.white,
-                  shadows: [BoxShadow(color: Colors.amber, blurRadius: 20, spreadRadius: 5)]
+              Image.asset(
+                'assets/images/ui/logo.png',
+                height: 180,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const Text(
+                  'SPLENDOR',
+                  style: TextStyle(
+                    fontSize: 56, 
+                    fontWeight: FontWeight.bold, 
+                    letterSpacing: 8,
+                    color: Colors.white,
+                    shadows: [BoxShadow(color: Colors.amber, blurRadius: 20, spreadRadius: 5)]
+                  ),
                 ),
               ).animate().fadeIn(duration: 1.seconds).shimmer(),
               
