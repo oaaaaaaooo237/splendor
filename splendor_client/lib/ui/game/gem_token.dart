@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:splendor_shared/splendor_shared.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../../core/providers/visual_settings_provider.dart';
 
-class GemToken extends StatelessWidget {
+class GemToken extends ConsumerWidget {
   final Gem gem;
   final double size;
   final VoidCallback? onTap;
@@ -42,18 +45,19 @@ class GemToken extends StatelessWidget {
     }
   }
 
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enableEffects = ref.watch(visualSettingsProvider);
+
     return GestureDetector(
       onTap: onTap,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+          Container(
             width: size,
             height: size,
-            transform: isSelected ? Matrix4.translationValues(0, -10, 0) : Matrix4.identity(),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               boxShadow: showShadow ? [
@@ -75,7 +79,21 @@ class GemToken extends StatelessWidget {
                 ),
               ),
             ),
+          )
+          .animate(target: isSelected ? 1 : 0, adapter: ValueAdapter(isSelected ? 1 : 0)) // Helper adapter? No, generic Animate is fine.
+          // IMPORTANT: If effects disabled, we want 0 duration or no effect.
+          // Easier: conditional animate? Or just 0 duration if !enabled.
+          .scale(
+             end: const Offset(1.1, 1.1), 
+             duration: enableEffects ? 200.ms : 0.ms, 
+             curve: Curves.easeOutBack
+          )
+          .moveY(
+             end: -10, 
+             duration: enableEffects ? 200.ms : 0.ms, 
+             curve: Curves.easeOut
           ),
+          
           if (count != null)
             Positioned(
               right: 0,

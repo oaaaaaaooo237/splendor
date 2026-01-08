@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/audio_service.dart';
+import '../../core/providers/visual_settings_provider.dart';
 
 // CONTEXT:
 // Purpose: User settings for Audio (and potential Theme/Language later).
@@ -33,6 +34,18 @@ class SettingsPage extends ConsumerWidget {
                label: "Sound Effects",
                value: audio.sfxVolume,
                onChanged: (v) => ref.read(audioServiceProvider).setSfxVolume(v)
+            ),
+            
+            const Divider(color: Colors.white24, height: 40),
+
+            const _SectionHeader("VISUAL"),
+            SwitchListTile(
+              title: const Text("Enable Animations", style: TextStyle(color: Colors.white70)),
+              subtitle: const Text("Toggle global visual effects", style: TextStyle(color: Colors.white30, fontSize: 12)),
+              value: ref.watch(visualSettingsProvider),
+              onChanged: (v) => ref.read(visualSettingsProvider.notifier).toggle(v),
+              activeColor: Colors.amber,
+              contentPadding: EdgeInsets.zero,
             ),
             
             const Divider(color: Colors.white24, height: 40),

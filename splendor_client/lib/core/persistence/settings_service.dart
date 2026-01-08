@@ -62,6 +62,18 @@ class SettingsService {
       sfx: prefs.getDouble(_keySfxVolume) ?? 0.8
     );
   }
+
+  static const _keyEnableEffects = 'enable_effects';
+
+  Future<void> saveVisualSettings(bool enableEffects) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyEnableEffects, enableEffects);
+  }
+
+  Future<bool> loadVisualSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyEnableEffects) ?? true;
+  }
 }
 
 final settingsServiceProvider = Provider((ref) => SettingsService());

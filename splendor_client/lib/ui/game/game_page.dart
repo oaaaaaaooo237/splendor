@@ -10,6 +10,7 @@ import 'package:splendor_shared/src/logic/engine/splendor_game_engine.dart';
 import 'package:splendor_shared/src/logic/utils/game_setup_helper.dart';
 import '../../repository/game_repository.dart';
 import 'gem_token.dart';
+import 'victory_page.dart';
 
 class GamePage extends ConsumerStatefulWidget {
   final List<PlayerIdentity> players;
@@ -100,11 +101,18 @@ class _GamePageState extends ConsumerState<GamePage> {
 
   void _showGameOver() {
     final state = _repository.currentState;
-    showDialog(context: context, builder: (_) => AlertDialog(
-      title: const Text("GAME OVER"),
-      content: Text("Winner: ${state.players[state.turnIndex].name}"), 
-      actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("OK"))],
-    ));
+    
+    // Determine Game Mode
+    // Single Player: <= 1 Human Player (The rest are bots)
+    // Multiplayer: > 1 Human Players (Local Hotseat or Online)
+    final isSinglePlayer = widget.players.where((p) => !p.isBot).length <= 1;
+
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => VictoryPage(
+       winner: state.playerStates[state.turnIndex], 
+       onRestart: isSinglePlayer ? () {
+         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => GamePage(players: widget.players)));
+       } : null 
+    )));
   }
   
   final Map<Gem, int> _draftGems = {};
@@ -233,6 +241,9 @@ class _GamePageState extends ConsumerState<GamePage> {
     final myId = ref.watch(identityProvider)?.uuid;
     final isMyTurn = activePlayer.uuid == myId;
 
+    // Global Visual Effects
+    final enableEffects = ref.watch(visualSettingsProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFF121212), 
       body: IgnorePointer(
@@ -291,9 +302,9 @@ class _GamePageState extends ConsumerState<GamePage> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly, 
                           children: [
-                            _buildCardRow(state.tier3Cards, Colors.blue),
-                            _buildCardRow(state.tier2Cards, Colors.yellow),
-                            _buildCardRow(state.tier1Cards, Colors.green),
+                            _buildCardRow(state.tier3Cards, Colors.blue, enableEffects),
+                            _buildCardRow(state.tier2Cards, Colors.yellow, enableEffects),
+                            _buildCardRow(state.tier1Cards, Colors.green, enableEffects),
                           ],
                         ),
                       ),
@@ -346,7 +357,7 @@ class _GamePageState extends ConsumerState<GamePage> {
 
                 // 4. Player Area
                 if (myId != null)
-                   _buildPlayerPanel(state.playerStates.firstWhere((p) => p.playerId == myId)),
+                   _buildPlayerPanel(state.playerStates.firstWhere((p) => p.playerId == myId), enableEffects),
               ],
             ),
             
@@ -366,70 +377,81 @@ class _GamePageState extends ConsumerState<GamePage> {
   // Class: _GamePageState (GamePage)
   // Global Variables: _draftCard (SplendorCard?), _isReserving (bool)
   // Libraries: flutter/material, splendor_shared, gem_token
-  Widget _buildPlayerPanel(PlayerState myState) {
-     return Container(
-        height: 180,
-        decoration: BoxDecoration(
-           color: const Color(0xFF1E1E1E),
-           border: Border(top: BorderSide(color: Colors.amber.withOpacity(0.3), width: 2)),
-        ),
-        padding: const EdgeInsets.all(12),
-        child: Row(
-           children: [
-              // Left: Stats (Points + Nobles)
-              Column(
-                 mainAxisAlignment: MainAxisAlignment.center,
-                 children: [
-                    Text("${myState.score}", style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.amber)),
-                    const Text("POINTS", style: TextStyle(fontSize: 10, color: Colors.grey, letterSpacing: 2)),
-                    const SizedBox(height: 8),
-                    // Nobles Icon Row if any
-                    if (myState.nobles.isNotEmpty)
-                       Icon(Icons.emoji_events, color: Colors.purple[200]),
-                 ],
-              ),
-              const VerticalDivider(color: Colors.white10, width: 24),
-              
-              // Middle: Resources (Bonuses + Gems)
-              Expanded(
-                 child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                       // Bonuses (rectangles)
-                       const Text("BONUSES", style: TextStyle(fontSize: 10, color: Colors.grey)),
-                       const SizedBox(height: 4),
-                       Row(
-                          children: Gem.values.where((g) => g != Gem.gold).map((gem) {
-                             final count = myState.bonuses[gem] ?? 0;
-                             return Container(
-                                width: 30, height: 40,
-                                margin: const EdgeInsets.only(right: 6),
-                                decoration: BoxDecoration(
-                                   color: _getGemColor(gem).withOpacity(0.2),
-                                   border: Border.all(color: _getGemColor(gem)),
-                                   borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Center(child: Text("$count", style: TextStyle(color: _getGemColor(gem), fontWeight: FontWeight.bold))),
-                             );
-                          }).toList(),
-                       ),
-                       const SizedBox(height: 12),
-                       
-                       // Gems (tokens)
-                       const Text("TOKENS", style: TextStyle(fontSize: 10, color: Colors.grey)),
-                       const SizedBox(height: 4),
-                       Row(
-                          children: Gem.values.map((gem) {
-                             final count = myState.gems[gem] ?? 0;
-                             return Padding(
-                               padding: const EdgeInsets.only(right: 4.0),
-                               child: GemToken(gem: gem, size: 32, count: count, onTap: () {}), // No interaction on own gems usually? Or return?
-                             );
-                          }).toList(),
-                       ),
-                    ],
-                 ),
-              ),
+   Widget _buildPlayerPanel(PlayerState myState, bool enableEffects) {
+      return Container(
+         height: 180,
+         decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            border: Border(top: BorderSide(color: Colors.amber.withOpacity(0.3), width: 2)),
+         ),
+         padding: const EdgeInsets.all(12),
+         child: Row(
+            children: [
+               // Left: Stats (Points + Nobles)
+               Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                     Text("${myState.score}", style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.amber)),
+                     const Text("POINTS", style: TextStyle(fontSize: 10, color: Colors.grey, letterSpacing: 2)),
+                     const SizedBox(height: 8),
+                     // Nobles Icon Row if any
+                     if (myState.nobles.isNotEmpty)
+                        Icon(Icons.emoji_events, color: Colors.purple[200]),
+                  ],
+               ),
+               const VerticalDivider(color: Colors.white10, width: 24),
+               
+               // Middle: Resources (Bonuses + Gems)
+               Expanded(
+                  child: Column(
+                     crossAxisAlignment: CrossAxisAlignment.start,
+                     children: [
+                        // Bonuses (rectangles)
+                        const Text("BONUSES", style: TextStyle(fontSize: 10, color: Colors.grey)),
+                        const SizedBox(height: 4),
+                        Row(
+                           children: Gem.values.where((g) => g != Gem.gold).map((gem) {
+                              final count = myState.bonuses[gem] ?? 0;
+                              return Container(
+                                 width: 30, height: 40,
+                                 margin: const EdgeInsets.only(right: 6),
+                                 decoration: BoxDecoration(
+                                    color: _getGemColor(gem).withOpacity(0.2),
+                                    border: Border.all(color: _getGemColor(gem)),
+                                    borderRadius: BorderRadius.circular(4),
+                                 ),
+                                 child: Center(child: Text("$count", style: TextStyle(color: _getGemColor(gem), fontWeight: FontWeight.bold))),
+                              )
+                              .animate(
+                                 key: ValueKey(count), 
+                                 target: 1
+                              )
+                              .scale(
+                                 begin: const Offset(1.5, 1.5), 
+                                 end: const Offset(1.0, 1.0),
+                                 duration: enableEffects ? 300.ms : 0.ms,
+                                 curve: Curves.elasticOut
+                              )
+                              .flash(duration: enableEffects ? 300.ms : 0.ms);
+                           }).toList(),
+                        ),
+                        const SizedBox(height: 12),
+                        
+                        // Gems (tokens)
+                        const Text("TOKENS", style: TextStyle(fontSize: 10, color: Colors.grey)),
+                        const SizedBox(height: 4),
+                        Row(
+                           children: Gem.values.map((gem) {
+                              final count = myState.gems[gem] ?? 0;
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 4.0),
+                                child: GemToken(gem: gem, size: 32, count: count, onTap: () {}), // No interaction on own gems usually? Or return?
+                              );
+                           }).toList(),
+                        ),
+                     ],
+                  ),
+               ),
               
               const VerticalDivider(color: Colors.white10, width: 24),
 
@@ -567,9 +589,9 @@ class _GamePageState extends ConsumerState<GamePage> {
     );
   }
 
-  Widget _buildCardRow(List<SplendorCard> cards, Color tierColor) {
+  Widget _buildCardRow(List<SplendorCard> cards, Color tierColor, bool enableEffects) {
     return SizedBox(
-      height: 120, // Increased for better visibility
+      height: 120, 
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
@@ -583,7 +605,7 @@ class _GamePageState extends ConsumerState<GamePage> {
             onTap: () => _onCardTap(card),
             onLongPress: () => _onCardLongPress(card),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: enableEffects ? 200.ms : 0.ms,
               width: 85,
               margin: const EdgeInsets.all(6),
               decoration: BoxDecoration(
@@ -606,13 +628,11 @@ class _GamePageState extends ConsumerState<GamePage> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    // Background Image
                     Image.asset(
                       bgAsset,
                       fit: BoxFit.cover,
                       opacity: const AlwaysStoppedAnimation(0.7),
                     ),
-                    // Points (Top Left)
                     if (card.points > 0)
                       Positioned(
                         top: 4, left: 4,
@@ -621,12 +641,10 @@ class _GamePageState extends ConsumerState<GamePage> {
                           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white, shadows: [Shadow(blurRadius: 4)])
                         ),
                       ),
-                    // Bonus Gem (Top Right)
                     Positioned(
                       top: 4, right: 4,
                       child: GemToken(gem: card.bonusGem, size: 24),
                     ),
-                    // Cost (Bottom Row)
                     Positioned(
                       bottom: 4, left: 4, right: 4,
                       child: Wrap(
@@ -641,7 +659,14 @@ class _GamePageState extends ConsumerState<GamePage> {
                   ],
                 ),
               ),
-            ).animate().slideX(begin: 0.2, delay: (100 * i).ms),
+            )
+            .animate(
+              key: ValueKey(card.id), // Key forces rebuild on refill
+              target: 1 // Always run
+            )
+            .slideX(begin: 0.2, duration: enableEffects ? 300.ms : 0.ms, curve: Curves.easeOut)
+            .fadeIn(duration: enableEffects ? 300.ms : 0.ms)
+            .shimmer(duration: enableEffects ? 600.ms : 0.ms, delay: 200.ms, color: Colors.white24),
           );
         },
       ),

@@ -116,9 +116,7 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
     }
 
     // Navigate to GamePage with players
-    // Note: GamePage constructor needs update to accept players.
-    // For now we pass it, assuming we will update GamePage next.
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => GamePage(players: players)));
+    Navigator.push(context, MaterialPageRoute(builder: (_) => GamePage(players: players)));
   }
 
   @override
