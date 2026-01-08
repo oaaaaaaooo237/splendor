@@ -1,0 +1,10 @@
+version: '3'
+services:
+  splendor-server:
+    build: .
+    container_name: splendor_server
+    ports:
+      - "8080:8080"
+    restart: always
+    environment:
+      - DART_ENV=production

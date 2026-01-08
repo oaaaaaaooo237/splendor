@@ -325,15 +325,18 @@ class SplendorGameEngine implements GameEngine {
         _state = _state.copyWith(nobles: newNobles, playerStates: newPlayerStates);
      }
 
-    // 2. Check Win
-    if (checkWinCondition()) {
-       _state = _state.copyWith(status: GameStatus.finished);
-       return;
-    }
-    
-    // 3. Increment Turn
-    int nextIndex = (_state.turnIndex + 1) % _state.players.length;
-    _state = _state.copyWith(turnIndex: nextIndex);
+     // 2. Increment Turn
+     int nextIndex = (_state.turnIndex + 1) % _state.players.length;
+     _state = _state.copyWith(turnIndex: nextIndex);
+
+     // 3. Check Win (At end of round)
+     // Rule: "When a player reaches 15 points, complete the current round so that each player has played the same number of turns."
+     // We check for a winner only when the turn loops back to the first player (index 0).
+     if (nextIndex == 0) {
+        if (checkWinCondition()) {
+           _state = _state.copyWith(status: GameStatus.finished);
+        }
+     }
   }
   
   _PaymentResult _calculatePayment(PlayerState player, SplendorCard card) {

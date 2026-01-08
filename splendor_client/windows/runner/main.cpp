@@ -17,6 +17,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   // plugins.
   ::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
 
+  // bitsdojo_window_configure(auto_register_custom_window_plugin);
+
   flutter::DartProject project(L"data");
 
   std::vector<std::string> command_line_arguments =

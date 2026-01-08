@@ -1,3 +1,8 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:splendor_shared/splendor_shared.dart';
+import '../menu/main_menu_page.dart';
+
 class VictoryPage extends StatelessWidget {
   final PlayerState winner;
   final VoidCallback? onRestart; // If null, implies "Return to Room" context

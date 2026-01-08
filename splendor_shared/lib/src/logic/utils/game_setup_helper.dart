@@ -90,33 +90,110 @@ class GameSetupHelper {
 
   // --- Mock Generators (To be replaced with full JSON later) ---
   static List<SplendorCard> _generateTier1Cards() {
-     // Generate 40 cards
-     return List.generate(40, (i) => SplendorCard(
-        id: 't1_$i', tier: 1, 
-        points: i % 5 == 0 ? 1 : 0, 
-        bonusGem: Gem.values[i % 5], 
-        cost: _randomCost(1, 4)
-     ));
+     return List.generate(40, (i) {
+        // Tier 1 Patterns:
+        // 0 Pts: 3 (Small), 1+1+1+1 (Spread), 2+1 (Tiny), 2+2 (Mid), 2+2+1 (Mid)
+        // 1 Pt: 4 (Single type - user disliked but it is standard for 1pt), OR 3+1? No standard is 4.
+        
+        final r = Random(i);
+        final points = i % 10 < 4 ? 1 : 0; // 40% chance of 1 point (Standard is less but ok)
+        
+        List<int> pattern;
+        if (points == 1) {
+           pattern = [4]; // 4 of one color
+        } else {
+           // 0 points
+           final p = r.nextInt(4);
+           if (p == 0) pattern = [3];
+           else if (p == 1) pattern = [1, 1, 1, 1];
+           else if (p == 2) pattern = [2, 1];
+           else pattern = [2, 2];
+        }
+        
+        // If pattern is [4], user hated single color 4. Let's make it 2,2 for "Mock" or keep standard?
+        // User said: "Tier 1 requirements weird... 3 white 4 white".
+        // Let's soften it: [4] -> [2, 2].
+        if (pattern.length == 1 && pattern[0] == 4) pattern = [2, 2];
+
+        return SplendorCard(
+           id: 't1_$i', tier: 1, 
+           points: points, 
+           bonusGem: Gem.values[i % 5], 
+           cost: _generatePatternCost(pattern, Gem.values[i % 5])
+        );
+     });
   }
   
   static List<SplendorCard> _generateTier2Cards() {
-     // Generate 30 cards
-     return List.generate(30, (i) => SplendorCard(
-        id: 't2_$i', tier: 2, 
-        points: 1 + (i % 3), 
-        bonusGem: Gem.values[i % 5], 
-        cost: _randomCost(2, 6)
-     ));
+     return List.generate(30, (i) {
+        final r = Random(i + 100);
+        // Tier 2: 1-3 pts
+        // 1 Pt: cost ~ 6 (e.g. 3,2,2 or 3,3)
+        // 2 Pts: cost ~ 7-8 (e.g. 5,3 or 5)
+        // 3 Pts: cost ~ 8-9 (e.g. 6)
+        
+        final points = 1 + (i % 3);
+        List<int> pattern;
+        
+        if (points == 1) {
+           pattern = r.nextBool() ? [3, 2, 2] : [2, 3, 3]; // Sum 7-8
+        } else if (points == 2) {
+           pattern = r.nextBool() ? [5] : [4, 2]; // Sum 5-6
+        } else {
+           pattern = [6]; // Sum 6 (single color)
+        }
+
+        return SplendorCard(
+           id: 't2_$i', tier: 2, 
+           points: points, 
+           bonusGem: Gem.values[i % 5], 
+           cost: _generatePatternCost(pattern, Gem.values[i % 5])
+        );
+     });
   }
   
   static List<SplendorCard> _generateTier3Cards() {
-     // Generate 20 cards
-     return List.generate(20, (i) => SplendorCard(
-        id: 't3_$i', tier: 3, 
-        points: 3 + (i % 3), 
-        bonusGem: Gem.values[i % 5], 
-        cost: _randomCost(3, 10) // Expensive
-     ));
+     return List.generate(20, (i) {
+        final r = Random(i + 200);
+        // Tier 3: 3-5 pts
+        // 3 Pts: Cost [3,3,3,5] (Total 14 - classic expensive)
+        // 4 Pts: Cost [7] (Classic) or [3,6,3]
+        // 5 Pts: Cost [7,3] (Classic)
+        
+        final points = 3 + (i % 3);
+        List<int> pattern;
+        
+        if (points == 3) {
+            pattern = [3, 3, 3, 5];
+        } else if (points == 4) {
+            pattern = r.nextBool() ? [7] : [3, 6, 3]; 
+        } else { // 5 pts
+            pattern = [7, 3];
+        }
+        
+        return SplendorCard(
+           id: 't3_$i', tier: 3, 
+           points: points, 
+           bonusGem: Gem.values[i % 5], 
+           cost: _generatePatternCost(pattern, Gem.values[i % 5])
+        );
+     });
+  }
+  
+  static Map<Gem, int> _generatePatternCost(List<int> pattern, Gem avoid) {
+      final r = Random();
+      final cost = <Gem, int>{};
+      
+      // Available gems (excluding gold, excluding bonus maybe?)
+      // Actually standard rules don't strictly ban bonus color in cost, but it's rare for T1.
+      List<Gem> types = Gem.values.where((g) => g != Gem.gold).toList()..shuffle(r);
+      
+      for (int i = 0; i < pattern.length; i++) {
+         if (i < types.length) {
+            cost[types[i]] = pattern[i];
+         }
+      }
+      return cost;
   }
   
   static List<Noble> _generateNobles() {
@@ -129,17 +206,5 @@ class GameSetupHelper {
           Gem.values[(i + 2) % 5]: 3
        }
      ));
-  }
-  
-  static Map<Gem, int> _randomCost(int tier, int totalCost) {
-     final r = Random();
-     final cost = <Gem, int>{};
-     int remaining = totalCost;
-     while (remaining > 0) {
-        final gem = Gem.values[r.nextInt(5)]; // No gold cost
-        cost[gem] = (cost[gem] ?? 0) + 1;
-        remaining--;
-     }
-     return cost;
   }
 }

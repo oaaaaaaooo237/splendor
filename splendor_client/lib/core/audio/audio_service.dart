@@ -22,15 +22,23 @@ class AudioService {
   int _currentBgmIndex = 0;
   bool _isPlaying = false;
   
+  double _bgmVolume = 1.0;
+  double _sfxVolume = 1.0;
+
+  double get bgmVolume => _bgmVolume;
+  double get sfxVolume => _sfxVolume;
+
   AudioService(this._ref) {
     _init();
   }
   
-  void _init() async {
+  Future<void> _init() async {
     // Set initial volumes
     final settings = await _ref.read(settingsServiceProvider).loadAudioSettings();
-    await _bgmPlayer.setVolume(settings.bgm);
-    await _sfxPlayer.setVolume(settings.sfx);
+    _bgmVolume = settings.bgm;
+    _sfxVolume = settings.sfx;
+    await _bgmPlayer.setVolume(_bgmVolume);
+    await _sfxPlayer.setVolume(_sfxVolume);
     
     // Setup BGM Loop / Playlist
     _bgmPlayer.onPlayerComplete.listen((_) {
@@ -40,10 +48,21 @@ class AudioService {
     });
   }
   
+  Future<void> setBgmVolume(double v) async {
+    _bgmVolume = v;
+    await _bgmPlayer.setVolume(v);
+    await _ref.read(settingsServiceProvider).saveAudioSettings(v, _sfxVolume);
+  }
+
+  Future<void> setSfxVolume(double v) async {
+    _sfxVolume = v;
+    await _sfxPlayer.setVolume(v);
+    await _ref.read(settingsServiceProvider).saveAudioSettings(_bgmVolume, v);
+  }
+  
+  // updateVolumes deprecated in favor of direct setters, keeping for legacy if needed or removing
   Future<void> updateVolumes() async {
-    final settings = await _ref.read(settingsServiceProvider).loadAudioSettings();
-    await _bgmPlayer.setVolume(settings.bgm);
-    await _sfxPlayer.setVolume(settings.sfx);
+     await _init(); // Re-read
   }
 
   void playMainMenuBgm() {

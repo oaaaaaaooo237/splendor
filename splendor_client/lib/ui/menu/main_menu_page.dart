@@ -28,7 +28,7 @@ class _MainMenuPageState extends ConsumerState<MainMenuPage> {
 
   @override
   Widget build(BuildContext context) {
-    final identity = ref.watch(identityServiceProvider);
+    final identity = ref.watch(identityProvider);
 
     return Scaffold(
       body: Container(
@@ -78,7 +78,7 @@ class _MainMenuPageState extends ConsumerState<MainMenuPage> {
 
               // Menu Items
               _MenuButton(
-                label: "PLAY",
+                label: "开始游戏",
                 icon: Icons.play_arrow_rounded,
                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LobbyPage())),
                 delay: 600.ms,
@@ -86,7 +86,7 @@ class _MainMenuPageState extends ConsumerState<MainMenuPage> {
               const SizedBox(height: 20),
               
               _MenuButton(
-                label: "LEADERBOARD",
+                label: "排行榜",
                 icon: Icons.leaderboard_rounded,
                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardPage())),
                 delay: 700.ms,
@@ -94,7 +94,7 @@ class _MainMenuPageState extends ConsumerState<MainMenuPage> {
               const SizedBox(height: 20),
 
               _MenuButton(
-                label: "SETTINGS",
+                label: "设置",
                 icon: Icons.settings_rounded,
                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage())),
                 delay: 800.ms,

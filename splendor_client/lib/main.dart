@@ -8,8 +8,29 @@ import 'core/providers/identity_loader.dart';
 import 'core/providers/identity_provider.dart';
 import 'core/providers/theme_provider.dart';
 
-void main() {
+import 'package:window_manager/window_manager.dart';
+import 'ui/shell/frameless_window.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Configure Window (Window Manager)
+  await windowManager.ensureInitialized();
+  
+  WindowOptions windowOptions = const WindowOptions(
+    size: Size(1100, 700),
+    minimumSize: Size(960, 600),
+    center: true,
+    backgroundColor: Colors.transparent,
+    skipTaskbar: false,
+    titleBarStyle: TitleBarStyle.hidden,
+  );
+  
+  await windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+  });
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
@@ -27,11 +48,16 @@ class SplendorApp extends ConsumerWidget {
     final appTheme = ref.watch(appThemeProvider);
 
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Splendor Private Cloud',
       theme: appTheme.themeData,
+      builder: (context, child) {
+         // Wrap content in frameless shell
+         return FramelessWindow(child: child!);
+      },
       home: loader.when(
         data: (_) => const WelcomePage(),
-        loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+        loading: () => const Scaffold(backgroundColor: Color(0xFF121212), body: Center(child: CircularProgressIndicator())),
         error: (e, st) => const WelcomePage(),
       ),
     );

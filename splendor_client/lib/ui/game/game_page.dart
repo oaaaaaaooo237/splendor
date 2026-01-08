@@ -1,4 +1,3 @@
-```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -11,6 +10,12 @@ import 'package:splendor_shared/src/logic/utils/game_setup_helper.dart';
 import '../../repository/game_repository.dart';
 import 'gem_token.dart';
 import 'victory_page.dart';
+import '../menu/main_menu_page.dart';
+import '../../core/providers/visual_settings_provider.dart';
+// New Widgets
+import 'widgets/game_hud.dart';
+import 'widgets/splendor_card_widget.dart';
+import 'widgets/noble_widget.dart';
 
 class GamePage extends ConsumerStatefulWidget {
   final List<PlayerIdentity> players;
@@ -25,25 +30,25 @@ class GamePage extends ConsumerStatefulWidget {
 class _GamePageState extends ConsumerState<GamePage> {
   late IGameRepository _repository;
   bool _isProcessing = false;
+  int _roundCount = 1; // Track basic rounds (Turn Index / Player Count)
   
   @override
   void initState() {
     super.initState();
-    // Use injected repository (Remote) or fallback to Local
-    _repository = widget.repository ?? LocalGameRepository(); 
-    
-    // Only initialize if it's Local (Remote is already init by Lobby)
-    // Actually, LocalGameRepository needs init. Remote might be ready.
-    // Check if repository needs calling initialize.
-    // Simplifying assumption: Always call initialize for Local. 
-    // For Remote, Lobby called specific methods. 'initialize' might be generic setup.
-    // Let's call _initializeGame() which calls _repository.initialize()
-    // BUT Remote.initialize is empty/no-op in my previous edit?
-    // Let's check RemoteGameRepository.initialize. It sends 'create_room' in previous version but I removed it?
-    // In current version, Remote.initialize is empty. 
-    // So calling it is safe.
-    
+    _repository = widget.repository ?? LocalGameRepository();
     _initializeGame();
+  }
+
+  bool _isCurrentTurn() {
+     try {
+       final state = _repository.currentState;
+       if (state.status != GameStatus.playing) return false;
+       final currentId = state.players[state.turnIndex].uuid;
+       final myId = ref.read(identityProvider)?.uuid;
+       return currentId == myId;
+     } catch (e) {
+       return false;
+     }
   }
 
   void _initializeGame() async {
@@ -65,9 +70,14 @@ class _GamePageState extends ConsumerState<GamePage> {
           _showGameOver();
           return;
        }
+       
+       // Update Round Count approx (Not supported in shared state yet)
+       // setState(() {
+       //    _roundCount = (state.turnCount / state.players.length).ceil();
+       //    if (_roundCount < 1) _roundCount = 1;
+       // });
   
        final currentPlayer = state.players[state.turnIndex].uuid;
-       // Find if this player is a bot
        final playerParams = widget.players.firstWhere((p) => p.uuid == currentPlayer);
        
        if (playerParams.isBot && !_isProcessing) {
@@ -75,8 +85,8 @@ class _GamePageState extends ConsumerState<GamePage> {
           
           // Bot Thinking Delay
           await Future.delayed(1000.ms);
-          
-          // Create Bot (Factory)
+           
+          // Create Bot
           BotDifficulty diff = BotDifficulty.standard;
           if (playerParams.name.contains("EASY")) diff = BotDifficulty.easy;
           if (playerParams.name.contains("HARD")) diff = BotDifficulty.hard;
@@ -84,14 +94,12 @@ class _GamePageState extends ConsumerState<GamePage> {
           final bot = BotFactory.createBot(diff, currentPlayer);
           final move = await bot.computeNextMove(state);
           
-          // Apply to Repository (it handles replacement injection now!)
           await _repository.applyAction(move);
 
           setState(() => _isProcessing = false);
           
-          _checkTurn(); // Recursive for next player
+          _checkTurn(); 
        } else {
-          // Human turn.
           setState(() {});
        }
      } catch (e) {
@@ -101,10 +109,6 @@ class _GamePageState extends ConsumerState<GamePage> {
 
   void _showGameOver() {
     final state = _repository.currentState;
-    
-    // Determine Game Mode
-    // Single Player: <= 1 Human Player (The rest are bots)
-    // Multiplayer: > 1 Human Players (Local Hotseat or Online)
     final isSinglePlayer = widget.players.where((p) => !p.isBot).length <= 1;
 
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => VictoryPage(
@@ -118,254 +122,417 @@ class _GamePageState extends ConsumerState<GamePage> {
   final Map<Gem, int> _draftGems = {};
   SplendorCard? _draftCard;
   bool _isReserving = false; 
+  
+  // Hover State
+  String? _hoveredOpponentId;
+  PlayerState? _hoveredOpponentState;
 
   // UI Interaction
   void _onTakeGem(Gem gem) {
     if (_isProcessing || !_isCurrentTurn()) return;
     
-    ref.read(audioServiceProvider).playSfx('click');
+    // RULE FIX: Cannot take Gold directly
+    if (gem == Gem.gold) {
+       _showError("黄金筹码不能直接拿取，必须通过'预留卡牌'获得");
+       return;
+    }
 
-    if (_draftCard != null) return; // Can't take gems if card selected
-
-     setState(() {
-       final currentCount = _draftGems[gem] ?? 0;
-       // Simple validation logic for UI feedback
-       // Logic: Max 3 distinct, or 2 same (if pile >=4).
-       // We won't enforce strict rules here, but we will limit total to 3.
-       // Engine will validate strictly.
-       if (currentCount == 0) {
-         if (_draftGems.length < 3) {
-            _draftGems[gem] = 1;
-         }
-       } else if (currentCount == 1) {
-         // Trying to take 2nd of same gem
-         // Clear others if any? or just allow if it's the only one.
-         if (_draftGems.length == 1) {
-            _draftGems[gem] = 2;
-         }
-       } else {
-         // Already have 2, can't take more of this.
+    // Logic: Smart Toggle
+    // ... rest of logic
+    setState(() {
+       // Reset Card Draft if standard gem action
+       if (_draftCard != null) {
+          _draftCard = null;
+          _draftGems.clear();
        }
-     });
+       
+       final current = _draftGems[gem] ?? 0;
+       
+       if (current == 0) {
+          // Attempt to add 1
+          bool hasDouble = _draftGems.values.any((v) => v == 2);
+          if (_draftGems.length < 3 && !hasDouble) {
+             _draftGems[gem] = 1;
+             ref.read(audioServiceProvider).playSfx('click');
+          } else {
+             _showError("最多只能拿3枚不同筹码，或2枚同色筹码");
+          }
+       } else if (current == 1) {
+          // Attempt to add 2nd (Double) OR Cancel
+          final available = _repository.currentState.availableGems[gem] ?? 0;
+          bool isOnlySelection = _draftGems.length == 1;
+          
+          if (available >= 4 && isOnlySelection) {
+             _draftGems[gem] = 2; // Upgrade to Double
+             ref.read(audioServiceProvider).playSfx('click');
+          } else {
+             _draftGems.remove(gem);
+             ref.read(audioServiceProvider).playSfx('click');
+          }
+       } else {
+          // current == 2 -> Toggle OFF
+          _draftGems.remove(gem);
+          ref.read(audioServiceProvider).playSfx('click');
+       }
+    });
+  }
+
+  void _showError(String msg) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(msg, style: const TextStyle(color: Colors.white)),
+        backgroundColor: Colors.red,
+        duration: 1.seconds,
+      ));
   }
   
+  // Use new Card Widget logic
   void _onCardTap(SplendorCard card) {
     if (_isProcessing || !_isCurrentTurn()) return;
-    
     ref.read(audioServiceProvider).playSfx('click');
-
-    setState(() {
-       _draftGems.clear();
-       _draftCard = card;
-       // For MVP, tap is Buy. 
-       // If we want Reserve, we need a toggle or long press. 
-       _isReserving = false; 
-    });
+    
+    // Check affordability
+    final canBuy = _canBuy(card);
+    final canReserve = _canReserve();
+    
+    showDialog(
+       context: context,
+       builder: (ctx) => AlertDialog(
+          backgroundColor: const Color(0xFF2C2C2C),
+          contentPadding: const EdgeInsets.all(24),
+          content: Column(
+             mainAxisSize: MainAxisSize.min,
+             children: [
+                SplendorCardWidget(card: card),
+                const SizedBox(height: 24),
+                Row(
+                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                   children: [
+                      // Buy Button
+                      _buildActionButton("购买", Colors.green, canBuy, () {
+                          Navigator.pop(ctx);
+                          _setDraftCard(card, false);
+                      }),
+                      const SizedBox(width: 16),
+                      // Reserve Button
+                      _buildActionButton("预留", Colors.amber, canReserve, () {
+                          Navigator.pop(ctx);
+                          _setDraftCard(card, true);
+                      }),
+                   ],
+                )
+             ],
+          ),
+       )
+    );
   }
   
-  void _onCardLongPress(SplendorCard card) {
-    if (_isProcessing) return;
-    setState(() {
-       _draftGems.clear();
-       _draftCard = card;
-       _isReserving = true;
-    });
+  Widget _buildActionButton(String label, Color color, bool enabled, VoidCallback onTap) {
+      return AnimatedContainer(
+         duration: 300.ms,
+         decoration: BoxDecoration(
+            boxShadow: enabled ? [BoxShadow(color: color.withOpacity(0.5), blurRadius: 10, spreadRadius: 1)] : []
+         ),
+         child: ElevatedButton(
+            onPressed: enabled ? onTap : null,
+            style: ElevatedButton.styleFrom(
+               backgroundColor: color,
+               disabledBackgroundColor: Colors.grey[800],
+               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12)
+            ),
+            child: Text(label, style: TextStyle(color: enabled ? Colors.white : Colors.white30)),
+         ),
+      );
   }
 
-  // CONTEXT:
-  // Class: _GamePageState (GamePage)
-  // Global Variables: _draftCard, _isReserving
-  // Libraries: splendor_shared
+  void _setDraftCard(SplendorCard card, bool reserve) {
+     setState(() {
+        _draftGems.clear();
+        _draftCard = card;
+        _isReserving = reserve;
+     });
+  }
+
+  bool _canBuy(SplendorCard card) {
+     final myState = _repository.currentState.playerStates.firstWhere((p) => p.playerId == ref.read(identityProvider)!.uuid);
+     
+     int missing = 0;
+     for (final entry in card.cost.entries) {
+        final gem = entry.key;
+        final cost = entry.value;
+        final held = myState.gems[gem] ?? 0;
+        final bonus = myState.bonuses[gem] ?? 0;
+        
+        final needed = cost - bonus;
+        if (needed > 0) {
+           final stillNeeded = needed - held;
+           if (stillNeeded > 0) missing += stillNeeded;
+        }
+     }
+     
+     final gold = myState.gems[Gem.gold] ?? 0;
+     return missing <= gold;
+  }
+
+  bool _canReserve() {
+     final myState = _repository.currentState.playerStates.firstWhere((p) => p.playerId == ref.read(identityProvider)!.uuid);
+     return myState.reservedCards.length < 3;
+  }
+
   void _onConfirm() async {
      if (_isProcessing) return;
-     
      final myId = ref.read(identityProvider)?.uuid;
      if (myId == null) return;
-     
-
-// ... (in _onConfirm)
-     // Find my state to check reserved
-     final myState = _repository.currentState.playerStates.firstWhere((p) => p.playerId == myId);
 
      Map<String, dynamic>? action;
-     // ... (Action Construction logic remains same) ...
      
+     if (_draftGems.isNotEmpty) {
+        action = {'type': 'take_gems', 'playerId': myId, 'gems': _draftGems.map((k, v) => MapEntry(k.name, v))};
+     } else if (_draftCard != null) {
+        action = {'type': _isReserving ? 'reserve_card' : 'buy_card', 'playerId': myId, 'cardId': _draftCard!.id};
+     }
+
      if (action != null) {
-        // NOTE: Repository handles replacement injection now!
+        setState(() => _isProcessing = true);
         try {
            await _repository.applyAction(action);
+           setState(() { _draftGems.clear(); _draftCard = null; _isReserving = false; _isProcessing = false; });
            
-           // Clear draft
-           setState(() {
-              _draftGems.clear();
-              _draftCard = null;
-              _isReserving = false;
-           });
-           
-           // Play SFX
            final audio = ref.read(audioServiceProvider);
            if (action['type'] == 'take_gems') audio.playSfx('take_gem');
            if (action['type'] == 'buy_card') audio.playSfx('buy_card');
            if (action['type'] == 'reserve_card') audio.playSfx('reserve');
 
-           // Pass turn check
            _checkTurn();
         } catch (e) {
-           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Invalid Move: $e")));
+           setState(() => _isProcessing = false);
+           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Action Failed: $e"), backgroundColor: Colors.red));
         }
+     } else {
+         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("请先选择筹码或卡牌"), backgroundColor: Colors.orange));
      }
   }
   
-  // _drawReplacement REMOVED - Logic moved to LocalGameRepository
-  
   void _onUndo() {
-     setState(() {
-        _draftGems.clear();
-        _draftCard = null;
-        _isReserving = false;
-     });
+     setState(() { _draftGems.clear(); _draftCard = null; _isReserving = false; });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_repository == null) return const Center(child: CircularProgressIndicator()); // Safety
+    if (_repository == null) return const Center(child: CircularProgressIndicator()); 
     
     GameState state;
-    try {
-       state = _repository.currentState;
-    } catch (e) {
-       return const Center(child: CircularProgressIndicator()); // Init delay
-    }
+    try { state = _repository.currentState; } catch (e) { return const Center(child: CircularProgressIndicator()); }
     
     final activePlayer = widget.players.firstWhere((p) => p.uuid == state.players[state.turnIndex].uuid);
     final myId = ref.watch(identityProvider)?.uuid;
     final isMyTurn = activePlayer.uuid == myId;
 
-    // Global Visual Effects
-    final enableEffects = ref.watch(visualSettingsProvider);
-
     return Scaffold(
       backgroundColor: const Color(0xFF121212), 
       body: IgnorePointer(
-        ignoring: !isMyTurn, // Disable interaction if not my turn
+        ignoring: !isMyTurn, 
         child: SafeArea(
         child: Stack(
           children: [
-            // BackgroundTexture
+            // Background
             Positioned.fill(
               child: Opacity(
                 opacity: 0.3,
-                child: Image.asset(
-                  'assets/images/ui/board_bg.png',
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(color: const Color(0xFF121212)),
-                ),
+                child: Image.asset('assets/images/ui/board_bg.png', fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: const Color(0xFF121212))),
               ),
             ),
             
             Column(
               children: [
-                // 1. Opponents Area
-                SizedBox(
-                  height: 100,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.all(8),
-                    itemCount: widget.players.where((p) => p.uuid != myId).length,
-                    itemBuilder: (ctx, i) {
-                       final opponents = widget.players.where((p) => p.uuid != myId).toList();
-                       final oppId = opponents[i].uuid;
-                       final oppState = state.playerStates.firstWhere((s) => s.playerId == oppId);
-                       // We need to pass Opponent State + Identity
-                       return _buildOpponentCard(opponents[i], oppState);
-                    },
-                  ),
+                // [NEW] Top HUD
+                GameHUD(
+                   turnCount: _roundCount,
+                   activePlayerName: activePlayer.name,
+                   isMyTurn: isMyTurn,
+                   onPause: () { /* Show pause menu */ }
                 ),
                 
-                const Divider(color: Colors.white10),
-                
-                // 2. Board Area (Middle)
+                const Divider(color: Colors.white10, height: 1),
+
+                // Main Content Area (Sidebar + Board + Gems + Sidebar)
                 Expanded(
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Nobles Column
-                      SizedBox(
-                        width: 100,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: state.nobles.map((n) => _buildNobleTile(n)).toList(),
-                        ),
-                      ),
-                      
-                      // Cards Grid
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly, 
-                          children: [
-                            _buildCardRow(state.tier3Cards, Colors.blue, enableEffects),
-                            _buildCardRow(state.tier2Cards, Colors.yellow, enableEffects),
-                            _buildCardRow(state.tier1Cards, Colors.green, enableEffects),
-                          ],
-                        ),
-                      ),
+                         // 1. Left Sidebar: Opponents
+                         Container(
+                            width: 120, 
+                            color: Colors.black26, 
+                            child: ListView.separated(
+                               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                               itemCount: widget.players.where((p) => p.uuid != myId).length,
+                               separatorBuilder: (_, __) => const SizedBox(height: 16),
+                               itemBuilder: (ctx, i) {
+                                  final opponents = widget.players.where((p) => p.uuid != myId).toList();
+                                  final oppState = state.playerStates.firstWhere((s) => s.playerId == opponents[i].uuid);
+                                  return MouseRegion(
+                                     onEnter: (_) => setState(() {
+                                        _hoveredOpponentId = opponents[i].uuid;
+                                        _hoveredOpponentState = oppState;
+                                     }),
+                                     onExit: (_) => setState(() {
+                                        _hoveredOpponentId = null;
+                                        _hoveredOpponentState = null;
+                                     }),
+                                     child: _buildCompactOpponentCard(opponents[i], oppState),
+                                  );
+                               },
+                            ),
+                         ),
+                         
+                         const VerticalDivider(width: 1, color: Colors.white10),
+
+                         // 2. Center: Cards Board + Gems Bank
+                         Expanded(
+                           child: Column(
+                             children: [
+                               // Board
+                               Expanded(
+                                 child: Padding(
+                                   padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                                   child: FittedBox(
+                                     key: const ValueKey("CardsBoard"),
+                                     fit: BoxFit.contain, 
+                                     alignment: Alignment.center,
+                                     child: Row(
+                                       mainAxisAlignment: MainAxisAlignment.center,
+                                       crossAxisAlignment: CrossAxisAlignment.center,
+                                       children: [
+                                           _buildTierBlock(state.tier3Cards, Colors.blue, "III"),
+                                           const SizedBox(width: 16),
+                                           _buildTierBlock(state.tier2Cards, Colors.amber, "II"),
+                                           const SizedBox(width: 16),
+                                           _buildTierBlock(state.tier1Cards, Colors.green, "I"),
+                                       ],
+                                     ),
+                                   ),
+                                 ),
+                               ),
+                               
+                               const Divider(color: Colors.white10, height: 1),
+
+                               // Gems Bank (Moved Here)
+                               Container(
+                                 padding: const EdgeInsets.symmetric(vertical: 8),
+                                 color: Colors.black26,
+                                 child: Row(
+                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                   children: [
+                                     ...state.availableGems.entries.map((e) => Column(
+                                       children: [
+                                         GemToken(gem: e.key, size: 50, isSelected: _draftGems.containsKey(e.key), onTap: () => _onTakeGem(e.key)), 
+                                         if (_draftGems.containsKey(e.key))
+                                            Container(
+                                               margin: const EdgeInsets.only(top: 4),
+                                               padding: const EdgeInsets.symmetric(horizontal: 4),
+                                               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                                               child: Text("拿取: ${_draftGems[e.key]}", style: const TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
+                                            ),
+                                         const SizedBox(height: 4),
+                                         Text("${e.value}", style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold)),
+                                       ],
+                                     )).toList(),
+                                     // Confirm Buttons
+                                     Row(
+                                       children: [
+                                          IconButton(
+                                            onPressed: _draftCard != null || _draftGems.isNotEmpty ? _onConfirm : null,
+                                            icon: Container(
+                                               padding: const EdgeInsets.all(8),
+                                               decoration: BoxDecoration(
+                                                  color: _draftCard != null || _draftGems.isNotEmpty ? Colors.green : Colors.grey[800],
+                                                  shape: BoxShape.circle,
+                                                  boxShadow: _draftCard != null || _draftGems.isNotEmpty ? [const BoxShadow(color: Colors.greenAccent, blurRadius: 10)] : []
+                                               ),
+                                               child: const Icon(Icons.check, color: Colors.white, size: 28),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 16),
+                                          IconButton(
+                                            onPressed: _onUndo,
+                                            icon: Container(
+                                               padding: const EdgeInsets.all(8),
+                                               decoration: BoxDecoration(color: Colors.grey[800], shape: BoxShape.circle, border: Border.all(color: Colors.white24)),
+                                               child: const Icon(Icons.undo, color: Colors.white, size: 28),
+                                            ),
+                                          ),
+                                       ],
+                                     ),
+                                   ],
+                                 ),
+                               ),
+                             ],
+                           ),
+                         ),
+
+                         const VerticalDivider(width: 1, color: Colors.white10),
+
+                         // 3. Right Sidebar: Nobles (Paints LAST -> On Top)
+                         Container(
+                            width: 120,
+                            color: Colors.black12,
+                            padding: const EdgeInsets.only(top: 16), // Remove symmetric vertical, manage bottom manually if needed
+                            child: Column(
+                               mainAxisAlignment: MainAxisAlignment.start,
+                               children: [
+                                  const Text("NOBLES", style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                                  const SizedBox(height: 16),
+                                  // Use ListView with Clip.none to handle overflow + allow hover expansion
+                                  Expanded(
+                                    child: ListView(
+                                      clipBehavior: Clip.none, // Crucial: Allow hover to paint outside bounds
+                                      padding: const EdgeInsets.symmetric(horizontal: 10), // Some padding
+                                      children: state.nobles.map((n) => Padding(
+                                         padding: const EdgeInsets.only(bottom: 12.0),
+                                         child: SizedBox(
+                                            width: 100, height: 100,
+                                            child: OverflowBox( 
+                                                maxWidth: 300, 
+                                                maxHeight: 300,
+                                                alignment: Alignment.centerRight,
+                                                child: NobleWidget(noble: n)
+                                            ),
+                                         ),
+                                      )).toList(),
+                                    ),
+                                  ),
+                                  // Spacer to align with Gems Row? 
+                                  // The Sidebar is full height of Row (Board+Gems).
+                                  // This is exactly what we want.
+                               ],
+                            ),
+                         ),
                     ],
                   ),
                 ),
                 
-                // 3. Gems Bank
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  color: Colors.black26,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ...state.availableGems.entries.map((e) => Column(
-                        children: [
-                          GemToken(
-                            gem: e.key, 
-                            size: 48, 
-                            isSelected: _draftGems.containsKey(e.key),
-                            onTap: () => _onTakeGem(e.key)
-                          ),
-                          const SizedBox(height: 4),
-                          Text("x${e.value}", style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                        ],
-                      )).toList(),
-                      // Action Buttons
-                      Row(
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: _draftCard != null || _draftGems.isNotEmpty ? _onConfirm : null, 
-                            icon: const Icon(Icons.check),
-                            label: Text(_isReserving ? "RESERVE" : "CONFIRM"),
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
-                          ),
-                          const SizedBox(width: 8),
-                          OutlinedButton.icon(
-                            onPressed: _onUndo, 
-                            icon: const Icon(Icons.undo),
-                            label: const Text("UNDO"),
-                            style: OutlinedButton.styleFrom(foregroundColor: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                const Divider(color: Colors.white10, height: 1),
                 
-                const Divider(color: Colors.white10),
+                // [DELETED] Gems Bank from here
+                
+                const Divider(color: Colors.white10, height: 1),
 
                 // 4. Player Area
                 if (myId != null)
-                   _buildPlayerPanel(state.playerStates.firstWhere((p) => p.playerId == myId), enableEffects),
+                   _buildPlayerPanel(state.playerStates.firstWhere((p) => p.playerId == myId)),
               ],
             ),
-            
              if (_isProcessing)
-              Container(
-                color: Colors.black54,
-                child: const Center(child: CircularProgressIndicator(color: Colors.amber)),
-              )
+              Container(color: Colors.black54, child: const Center(child: CircularProgressIndicator(color: Colors.amber))),
+
+            // Hover Overlay for Opponents (Top Level of Stack)
+            if (_hoveredOpponentId != null && _hoveredOpponentState != null)
+               Positioned(
+                  top: 50, // Slightly higher to accommodate larger popup
+                  left: 140, 
+                  child: _buildOpponentDetailOverlay(_hoveredOpponentState!),
+               ),
           ],
         ),
       ),
@@ -373,80 +540,58 @@ class _GamePageState extends ConsumerState<GamePage> {
     );
   }
 
-  // CONTEXT:
-  // Class: _GamePageState (GamePage)
-  // Global Variables: _draftCard (SplendorCard?), _isReserving (bool)
-  // Libraries: flutter/material, splendor_shared, gem_token
-   Widget _buildPlayerPanel(PlayerState myState, bool enableEffects) {
+   Widget _buildPlayerPanel(PlayerState myState) {
       return Container(
-         height: 180,
-         decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
-            border: Border(top: BorderSide(color: Colors.amber.withOpacity(0.3), width: 2)),
-         ),
+         height: 170, 
+         decoration: BoxDecoration(color: const Color(0xFF1E1E1E), border: Border(top: BorderSide(color: Colors.amber.withOpacity(0.3), width: 2))),
          padding: const EdgeInsets.all(12),
          child: Row(
             children: [
-               // Left: Stats (Points + Nobles)
+               // Stats
                Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                      Text("${myState.score}", style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.amber)),
-                     const Text("POINTS", style: TextStyle(fontSize: 10, color: Colors.grey, letterSpacing: 2)),
-                     const SizedBox(height: 8),
-                     // Nobles Icon Row if any
-                     if (myState.nobles.isNotEmpty)
-                        Icon(Icons.emoji_events, color: Colors.purple[200]),
+                     const Text("分数", style: TextStyle(fontSize: 10, color: Colors.grey, letterSpacing: 2)),
+                     if (myState.nobles.isNotEmpty) Icon(Icons.emoji_events, color: Colors.purple[200]),
                   ],
                ),
                const VerticalDivider(color: Colors.white10, width: 24),
                
-               // Middle: Resources (Bonuses + Gems)
+               // Resources
                Expanded(
                   child: Column(
                      crossAxisAlignment: CrossAxisAlignment.start,
                      children: [
-                        // Bonuses (rectangles)
-                        const Text("BONUSES", style: TextStyle(fontSize: 10, color: Colors.grey)),
+                        const Text("红利", style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 4),
                         Row(
                            children: Gem.values.where((g) => g != Gem.gold).map((gem) {
                               final count = myState.bonuses[gem] ?? 0;
+                              final gemColor = _getGemColor(gem);
                               return Container(
-                                 width: 30, height: 40,
+                                 width: 32, height: 42,
                                  margin: const EdgeInsets.only(right: 6),
                                  decoration: BoxDecoration(
-                                    color: _getGemColor(gem).withOpacity(0.2),
-                                    border: Border.all(color: _getGemColor(gem)),
-                                    borderRadius: BorderRadius.circular(4),
+                                     color: gemColor.withOpacity(0.3), 
+                                     border: Border.all(color: gemColor, width: 1.5), 
+                                     borderRadius: BorderRadius.circular(4)
                                  ),
-                                 child: Center(child: Text("$count", style: TextStyle(color: _getGemColor(gem), fontWeight: FontWeight.bold))),
-                              )
-                              .animate(
-                                 key: ValueKey(count), 
-                                 target: 1
-                              )
-                              .scale(
-                                 begin: const Offset(1.5, 1.5), 
-                                 end: const Offset(1.0, 1.0),
-                                 duration: enableEffects ? 300.ms : 0.ms,
-                                 curve: Curves.elasticOut
-                              )
-                              .flash(duration: enableEffects ? 300.ms : 0.ms);
+                                 child: Center(
+                                     child: Text("$count", 
+                                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16, shadows: [Shadow(blurRadius: 2, color: Colors.black)])
+                                     )
+                                 ),
+                              );
                            }).toList(),
                         ),
                         const SizedBox(height: 12),
-                        
-                        // Gems (tokens)
-                        const Text("TOKENS", style: TextStyle(fontSize: 10, color: Colors.grey)),
+                        const Text("筹码", style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 4),
                         Row(
-                           children: Gem.values.map((gem) {
+                           children: Gem.values.map<Widget>((gem) {
                               final count = myState.gems[gem] ?? 0;
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 4.0),
-                                child: GemToken(gem: gem, size: 32, count: count, onTap: () {}), // No interaction on own gems usually? Or return?
-                              );
+                              return Padding(padding: const EdgeInsets.only(right: 4.0),child: GemToken(gem: gem, size: 32, count: count, onTap: () {}));
                            }).toList(),
                         ),
                      ],
@@ -455,50 +600,38 @@ class _GamePageState extends ConsumerState<GamePage> {
               
               const VerticalDivider(color: Colors.white10, width: 24),
 
-              // Right: Reserved Cards
-              SizedBox(
-                 width: 120,
+              // Reserved Cards
+              Container(
+                 width: 320, 
+                 padding: const EdgeInsets.only(left: 12),
+                 decoration: const BoxDecoration(
+                    border: Border(left: BorderSide(color: Colors.white10, width: 1))
+                 ),
                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                       Text("RESERVED (${myState.reservedCards.length})", style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                       Text("预留 (${myState.reservedCards.length}/3)", style: const TextStyle(fontSize: 10, color: Colors.grey)),
                        const SizedBox(height: 8),
                        Expanded(
-                          child: ListView.builder(
-                             scrollDirection: Axis.horizontal,
-                             itemCount: myState.reservedCards.length,
-                             itemBuilder: (ctx, i) {
-                                final card = myState.reservedCards[i];
-                                final isSelected = _draftCard?.id == card.id;
-                                return GestureDetector(
-                                   onTap: () {
-                                      // Special logic: Tap reserved to BUY it
-                                      setState(() {
-                                         _draftGems.clear();
-                                         _draftCard = card;
-                                         _isReserving = false; // Buying from reserved
-                                      });
-                                   },
-                                   child: Container(
-                                      width: 50,
-                                      margin: const EdgeInsets.only(right: 8),
-                                      decoration: BoxDecoration(
-                                         color: Colors.grey[800],
-                                         border: Border.all(
-                                            color: isSelected ? Colors.green : _getGemColor(card.bonusGem),
-                                            width: isSelected ? 2 : 1
-                                         ),
-                                         borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Column(
-                                         mainAxisAlignment: MainAxisAlignment.center,
-                                         children: [
-                                            Text("${card.points}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                            Icon(Icons.diamond, size: 12, color: _getGemColor(card.bonusGem)),
-                                         ],
-                                      ),
+                          child: Row(
+                             mainAxisAlignment: MainAxisAlignment.start,
+                             children: myState.reservedCards.map((card) => 
+                               Padding(
+                                 padding: const EdgeInsets.only(right: 12.0),
+                                 child: AspectRatio(
+                                   aspectRatio: 0.7, 
+                                   child: FittedBox(
+                                     fit: BoxFit.contain,
+                                     child: SplendorCardWidget(
+                                        card: card, 
+                                        isAffordable: _canBuy(card), 
+                                        isReserved: true,
+                                        onTap: () => _onCardTap(card)
+                                     ),
                                    ),
-                                );
-                             },
+                                 ),
+                               )
+                             ).toList(),
                           ),
                        ),
                     ],
@@ -509,178 +642,201 @@ class _GamePageState extends ConsumerState<GamePage> {
      );
   }
 
-  Widget _buildOpponentCard(PlayerIdentity player, PlayerState state) {
+  Widget _buildCompactOpponentCard(PlayerIdentity player, PlayerState state) {
     return Container(
-      width: 80,
-      margin: const EdgeInsets.only(right: 8),
+      // width: 100, // Removed fixed width
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: const Color(0xFF2C2C2C),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white12),
+         color: const Color(0xFF2C2C2C), 
+         borderRadius: BorderRadius.circular(8), 
+         border: Border.all(
+            color: _hoveredOpponentId == player.uuid ? Colors.amber : Colors.white12,
+            width: _hoveredOpponentId == player.uuid ? 2 : 1
+         )
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircleAvatar(
-            radius: 12, 
-            backgroundColor: player.isBot ? Colors.blueGrey : Colors.amber, 
-            child: Icon(player.isBot ? Icons.smart_toy : Icons.person, size: 12, color: Colors.white)
-          ),
-          const SizedBox(height: 4),
-          Text(player.name, style: const TextStyle(fontSize: 10, color: Colors.grey), overflow: TextOverflow.ellipsis),
-          Text("${state.score} PTS", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.amber)),
+           CircleAvatar(
+              radius: 16, 
+              backgroundColor: player.isBot ? Colors.blueGrey : Colors.amber, 
+              child: Icon(player.isBot ? Icons.smart_toy : Icons.person, size: 18, color: Colors.white)
+           ),
+           const SizedBox(height: 4),
+           Text(player.name, style: const TextStyle(fontSize: 10, color: Colors.white70), overflow: TextOverflow.ellipsis),
+           const SizedBox(height: 4),
+           // Simple Score
+           Text("${state.score} pts", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.amber)),
         ],
       ),
     );
   }
 
-  Widget _buildNobleTile(Noble noble) {
-    // Map noble ID to corresponding generated asset if exists, else fallback
-    String assetPath = 'assets/images/nobles/${noble.id}.png';
-    
-    return Container(
-      width: 80,
-      height: 80,
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFF3E2723),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.amber.withOpacity(0.5), width: 1.5),
-        boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 4, offset: Offset(2, 2))],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(6.5),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Image.asset(
-              assetPath,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(color: Colors.brown[900]),
-            ),
-            // Points Overlay
-            Positioned(
-              top: 4, left: 4,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  "${noble.points}", 
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)
-                ),
-              ),
-            ),
-            // Requirements Overlay (Mini)
-            Positioned(
-              bottom: 4, right: 4,
-              child: Row(
-                children: noble.requirements.entries.map((e) => Padding(
-                  padding: const EdgeInsets.only(left: 2),
-                  child: GemToken(gem: e.key, size: 14, count: e.value, showShadow: false),
-                )).toList(),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+   Widget _buildOpponentDetailOverlay(PlayerState state) {
+      return Container(
+         width: 500, // Large Overlay as requested (Red Box size)
+         padding: const EdgeInsets.all(20),
+         decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.amber, width: 3),
+            boxShadow: const [BoxShadow(color: Colors.black, blurRadius: 20, spreadRadius: 5)]
+         ),
+         child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+               // Header
+               Row(
+                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                 children: [
+                    Text("Score: ${state.score}", style: const TextStyle(color: Colors.amber, fontSize: 32, fontWeight: FontWeight.bold)),
+                    if (state.nobles.isNotEmpty)
+                       Row(children: [const Icon(Icons.emoji_events, color: Colors.purpleAccent, size: 32), const SizedBox(width: 8), Text("${state.nobles.length}", style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold))])
+                 ],
+               ),
+               const Divider(color: Colors.white24, height: 32),
+               
+               // 1. Nobles Detail
+               if (state.nobles.isNotEmpty) ...[
+                  const Text("Nobles:", style: TextStyle(color: Colors.purpleAccent, fontSize: 14, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Wrap(
+                     spacing: 12,
+                     children: state.nobles.map((n) => 
+                        Container(
+                           width: 50, height: 50,
+                           decoration: BoxDecoration(
+                             border: Border.all(color: Colors.amber),
+                             borderRadius: BorderRadius.circular(4),
+                             image: DecorationImage(image: AssetImage('assets/images/nobles/${n.id}.png'), fit: BoxFit.cover)
+                           ),
+                        )
+                     ).toList(),
+                  ),
+                  const SizedBox(height: 20),
+               ],
 
-  Widget _buildCardRow(List<SplendorCard> cards, Color tierColor, bool enableEffects) {
-    return SizedBox(
-      height: 120, 
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        itemCount: cards.length,
-        itemBuilder: (ctx, i) {
-          final card = cards[i];
-          final isSelected = _draftCard?.id == card.id;
-          final bgAsset = 'assets/images/cards/level${card.tier}.png';
-          
-          return GestureDetector(
-            onTap: () => _onCardTap(card),
-            onLongPress: () => _onCardLongPress(card),
-            child: AnimatedContainer(
-              duration: enableEffects ? 200.ms : 0.ms,
-              width: 85,
-              margin: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: Colors.grey[900],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: isSelected ? Colors.white : tierColor.withValues(alpha: 0.5),
-                  width: isSelected ? 2.5 : 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: isSelected ? tierColor.withValues(alpha: 0.4) : Colors.black45,
-                    blurRadius: isSelected ? 12 : 4,
-                    offset: const Offset(2, 2)
-                  )
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(7),
-                child: Stack(
-                  fit: StackFit.expand,
+               // 2. Reserved Cards (Revealed)
+               Row(
                   children: [
-                    Image.asset(
-                      bgAsset,
-                      fit: BoxFit.cover,
-                      opacity: const AlwaysStoppedAnimation(0.7),
-                    ),
-                    if (card.points > 0)
-                      Positioned(
-                        top: 4, left: 4,
-                        child: Text(
-                          "${card.points}", 
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white, shadows: [Shadow(blurRadius: 4)])
-                        ),
-                      ),
-                    Positioned(
-                      top: 4, right: 4,
-                      child: GemToken(gem: card.bonusGem, size: 24),
-                    ),
-                    Positioned(
-                      bottom: 4, left: 4, right: 4,
-                      child: Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 2,
-                        runSpacing: 2,
-                        children: card.cost.entries.where((e) => e.value > 0).map((e) => 
-                          GemToken(gem: e.key, size: 16, count: e.value, showShadow: false)
-                        ).toList(),
-                      ),
-                    ),
+                     const Text("Reserved Cards:", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                     const SizedBox(width: 8),
+                     Text("(${state.reservedCards.length}/3)", style: const TextStyle(color: Colors.grey, fontSize: 12)),
                   ],
-                ),
-              ),
-            )
-            .animate(
-              key: ValueKey(card.id), // Key forces rebuild on refill
-              target: 1 // Always run
-            )
-            .slideX(begin: 0.2, duration: enableEffects ? 300.ms : 0.ms, curve: Curves.easeOut)
-            .fadeIn(duration: enableEffects ? 300.ms : 0.ms)
-            .shimmer(duration: enableEffects ? 600.ms : 0.ms, delay: 200.ms, color: Colors.white24),
-          );
-        },
-      ),
-    );
-  }
-  
-  Color _getGemColor(Gem gem) {
-     switch (gem) {
-      case Gem.white: return Colors.white;
-      case Gem.blue: return Colors.blue;
-      case Gem.green: return Colors.green;
-      case Gem.red: return Colors.red;
-      case Gem.black: return Colors.grey;
-      case Gem.gold: return Colors.amber;
+               ),
+               const SizedBox(height: 12),
+               if (state.reservedCards.isEmpty) 
+                  const Text("No Reserved Cards", style: TextStyle(color: Colors.white30, fontSize: 14, fontStyle: FontStyle.italic))
+               else
+                  Container(
+                     height: 200, // Reduced from 140 to 200? No, Increased to 200.
+                     alignment: Alignment.centerLeft,
+                     child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        shrinkWrap: true,
+                        itemCount: state.reservedCards.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemBuilder: (ctx, i) {
+                           final card = state.reservedCards[i];
+                           return AspectRatio(
+                              aspectRatio: 0.7,
+                              child: SplendorCardWidget(
+                                 card: card,
+                                 isReserved: true, // Now safe to use true as style is improved
+                              ),
+                           );
+                        },
+                     ),
+                  ),
+                  
+               const SizedBox(height: 20),
+               
+                // 3. Resources (Visual Tokens)
+                const Text("Resources:", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                const Divider(color: Colors.white24),
+                const SizedBox(height: 12),
+                Row(
+                   mainAxisAlignment: MainAxisAlignment.spaceAround,
+                   crossAxisAlignment: CrossAxisAlignment.end,
+                   children: Gem.values.map((gem) {
+                      final bonus = state.bonuses[gem] ?? 0;
+                      final gemCount = state.gems[gem] ?? 0;
+                      final color = _getGemColor(gem);
+                      
+                      return Column(
+                         mainAxisSize: MainAxisSize.min,
+                         children: [
+                            // Bonus Indicator
+                            if (gem != Gem.gold)
+                              Container(
+                                 width: 28, height: 36,
+                                 margin: const EdgeInsets.only(bottom: 8),
+                                 decoration: BoxDecoration(
+                                    color: color.withOpacity(0.3),
+                                    border: Border.all(color: color, width: 1.5),
+                                    borderRadius: BorderRadius.circular(4)
+                                 ),
+                                 child: Center(
+                                     child: Text("$bonus", 
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14, shadows: [Shadow(blurRadius: 2, color: Colors.black)])
+                                     )
+                                 ),
+                              )
+                            else 
+                               const SizedBox(height: 44), // Spacer for Gold 
+                            
+                            // Gem Token (Interactive look but just display)
+                            GemToken(gem: gem, count: gemCount, size: 40, onTap: () {}),
+                         ],
+                      );
+                   }).toList(),
+                )
+             ],
+          ),
+       );
     }
-  }
+   
+   // Updated to return a 2x2 Grid Block
+   Widget _buildTierBlock(List<SplendorCard> cards, Color tierColor, String label) {
+       // Expecting 4 cards. Display as 2 rows of 2.
+       return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+             border: Border.all(color: tierColor.withOpacity(0.3), width: 2),
+             borderRadius: BorderRadius.circular(12),
+             color: tierColor.withOpacity(0.05)
+          ),
+          child: Column(
+             mainAxisSize: MainAxisSize.min,
+             children: [
+                // Row 1
+                Row(
+                   children: cards.take(2).map((c) => 
+                      Padding(padding: const EdgeInsets.all(4), child: SplendorCardWidget(card: c, onTap: () => _onCardTap(c)))
+                   ).toList(),
+                ),
+                // Row 2
+                Row(
+                   children: cards.skip(2).take(2).map((c) => 
+                      Padding(padding: const EdgeInsets.all(4), child: SplendorCardWidget(card: c, onTap: () => _onCardTap(c)))
+                   ).toList(),
+                )
+             ],
+          ),
+       );
+   }
+
+   Color _getGemColor(Gem gem) {
+     switch (gem) {
+       case Gem.red: return Colors.red;
+       case Gem.blue: return Colors.blue;
+       case Gem.green: return Colors.green;
+       case Gem.black: return const Color(0xFF333333);
+       case Gem.white: return Colors.white;
+       case Gem.gold: return Colors.amber;
+     }
+   }
 }

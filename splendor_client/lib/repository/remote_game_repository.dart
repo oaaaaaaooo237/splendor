@@ -33,9 +33,14 @@ class RemoteGameRepository implements IGameRepository {
   
   Stream<Map<String, dynamic>> get eventStream => _eventController.stream;
 
-  // ... (Constructor remains)
+  @override
+  Stream<GameState> get stateStream => _controller.stream;
 
-  // ... (stateStream/currentState getters remain)
+  @override
+  GameState get currentState {
+     if (_cachedState == null) throw Exception("Game state not yet received from server");
+     return _cachedState!;
+  }
 
   void _onMessage(dynamic message) {
     try {
