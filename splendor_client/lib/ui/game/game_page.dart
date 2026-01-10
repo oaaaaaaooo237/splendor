@@ -350,7 +350,7 @@ class _GamePageState extends ConsumerState<GamePage> {
                    turnCount: _roundCount,
                    activePlayerName: activePlayer.name,
                    isMyTurn: isMyTurn,
-                   onPause: () { /* Show pause menu */ }
+                   onPause: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage())),
                 ),
                 
                 const Divider(color: Colors.white10, height: 1),
