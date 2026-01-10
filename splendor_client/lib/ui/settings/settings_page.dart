@@ -23,32 +23,47 @@ class SettingsPage extends ConsumerWidget {
       body: ListView(
          padding: const EdgeInsets.all(16),
          children: [
-            const _SectionHeader("AUDIO"),
-            
-            // BGM Volume
-            _VolumeSlider(
-               label: "Music Volume",
-               value: audio.bgmVolume,
-               onChanged: (v) => ref.read(audioServiceProvider).setBgmVolume(v)
-            ),
-            
-            // SFX Volume
-             _VolumeSlider(
-               label: "Sound Effects",
-               value: audio.sfxVolume,
-               onChanged: (v) => ref.read(audioServiceProvider).setSfxVolume(v)
-            ),
-            
-            const Divider(color: Colors.white24, height: 40),
+            // VISUAL & AUDIO SECTION (Unified)
+            Consumer(
+              builder: (context, ref, _) {
+                 final settings = ref.watch(visualSettingsProvider);
+                 final notifier = ref.read(visualSettingsProvider.notifier);
+                 
+                 return Column(
+                   crossAxisAlignment: CrossAxisAlignment.start,
+                   children: [
+                      const _SectionHeader("AUDIO & VISUAL"),
+                      
+                      // Music Volume
+                      _VolumeSlider(
+                         label: "Music Volume",
+                         value: settings.bgmVolume,
+                         onChanged: (v) => notifier.updateBgmVolume(v)
+                      ),
+                      
+                      const SizedBox(height: 16),
 
-            const _SectionHeader("VISUAL"),
-            SwitchListTile(
-              title: const Text("Enable Animations", style: TextStyle(color: Colors.white70)),
-              subtitle: const Text("Toggle global visual effects", style: TextStyle(color: Colors.white30, fontSize: 12)),
-              value: ref.watch(visualSettingsProvider),
-              onChanged: (v) => ref.read(visualSettingsProvider.notifier).toggle(v),
-              activeColor: Colors.amber,
-              contentPadding: EdgeInsets.zero,
+                      // SFX Volume
+                      _VolumeSlider(
+                         label: "Sound Effects",
+                         value: settings.sfxVolume,
+                         onChanged: (v) => notifier.updateSfxVolume(v)
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Visual Effects
+                      SwitchListTile(
+                        title: const Text("Enable Animations", style: TextStyle(color: Colors.white70)),
+                        subtitle: const Text("Particles and visual flair", style: TextStyle(color: Colors.white30, fontSize: 12)),
+                        value: settings.enableEffects,
+                        onChanged: (v) => notifier.toggle(v),
+                        activeColor: Colors.amber,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                   ],
+                 );
+              }
             ),
             
             const Divider(color: Colors.white24, height: 40),

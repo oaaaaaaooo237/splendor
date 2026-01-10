@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../persistence/settings_service.dart';
+import '../providers/visual_settings_provider.dart';
 
 // CONTEXT:
 // Global Variables: audioServiceProvider
@@ -30,16 +31,24 @@ class AudioService {
 
   AudioService(this._ref) {
     _init();
+    _setupListeners();
   }
   
+  void _setupListeners() {
+    // Reactive mapping from Settings Provider to Audio Hardware
+    _ref.listen(visualSettingsProvider, (prev, next) {
+        if (prev?.bgmVolume != next.bgmVolume) {
+           _bgmVolume = next.bgmVolume;
+           _bgmPlayer.setVolume(_bgmVolume);
+        }
+        if (prev?.sfxVolume != next.sfxVolume) {
+           _sfxVolume = next.sfxVolume;
+           _sfxPlayer.setVolume(_sfxVolume);
+        }
+    }, fireImmediately: true);
+  }
+
   Future<void> _init() async {
-    // Set initial volumes
-    final settings = await _ref.read(settingsServiceProvider).loadAudioSettings();
-    _bgmVolume = settings.bgm;
-    _sfxVolume = settings.sfx;
-    await _bgmPlayer.setVolume(_bgmVolume);
-    await _sfxPlayer.setVolume(_sfxVolume);
-    
     // Setup BGM Loop / Playlist
     _bgmPlayer.onPlayerComplete.listen((_) {
       if (_isPlaying) {
@@ -48,22 +57,11 @@ class AudioService {
     });
   }
   
-  Future<void> setBgmVolume(double v) async {
-    _bgmVolume = v;
-    await _bgmPlayer.setVolume(v);
-    await _ref.read(settingsServiceProvider).saveAudioSettings(v, _sfxVolume);
-  }
-
-  Future<void> setSfxVolume(double v) async {
-    _sfxVolume = v;
-    await _sfxPlayer.setVolume(v);
-    await _ref.read(settingsServiceProvider).saveAudioSettings(_bgmVolume, v);
-  }
+  // These are now handled by the listener, keeping for API compatibility if needed
+  Future<void> setBgmVolume(double v) async {}
+  Future<void> setSfxVolume(double v) async {}
   
-  // updateVolumes deprecated in favor of direct setters, keeping for legacy if needed or removing
-  Future<void> updateVolumes() async {
-     await _init(); // Re-read
-  }
+  Future<void> updateVolumes() async {}
 
   void playMainMenuBgm() {
     // Should ideally be different from game BGM, but for now reuse or pick specific

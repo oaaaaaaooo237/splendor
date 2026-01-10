@@ -52,7 +52,19 @@ class RemoteGameRepository implements IGameRepository {
       if (type == 'game_started' || type == 'game_update') {
          final stateJson = data['initialState'] ?? data['state'];
          _cachedState = GameState.fromJson(stateJson);
+         
+         // If game_started, it might include the authoritative players list
+         final playersJson = data['players'] as List?;
+         final players = playersJson != null 
+             ? playersJson.map((p) => PlayerIdentity.fromJson(p)).toList()
+             : <PlayerIdentity>[];
+
          _controller.add(_cachedState!);
+         
+         // Optimization: If we have players, send a specific event so Lobby knows
+         if (players.isNotEmpty) {
+            _eventController.add({'type': 'players_update', 'data': {'players': playersJson}});
+         }
       }
       
       // Forward all messages to event stream (for Lobby UI feedback)
@@ -85,8 +97,8 @@ class RemoteGameRepository implements IGameRepository {
      _send('login', {'playerId': uuid, 'name': name});
   }
   
-  void createRoom() {
-     _send('create_room', {});
+  void createRoom({String? roomId}) {
+     _send('create_room', {'roomId': roomId});
   }
   
   void joinRoom(String roomId) {

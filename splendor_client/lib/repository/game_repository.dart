@@ -85,7 +85,7 @@ class LocalGameRepository implements IGameRepository {
      
      final card = drawReplacement(tier);
      if (card != null) {
-        action['replacementCard'] = card.toJson();
+        action['replacementCard'] = card;
      }
   }
   
@@ -93,7 +93,7 @@ class LocalGameRepository implements IGameRepository {
      final tier = action['tier'] as int;
      final card = drawReplacement(tier);
      if (card != null) {
-        action['drawnCard'] = card.toJson();
+        action['drawnCard'] = card;
      }
   }
 

@@ -6,6 +6,7 @@ class SettingsService {
   static const _keyAvatar = 'player_avatar';
   static const _keyServer = 'server_url';
   static const _keyTheme = 'theme_mode'; // Persistence key
+  static const _keyTurnDuration = 'turn_duration';
 
   Future<void> saveIdentity(String name, String avatarId) async {
     final prefs = await SharedPreferences.getInstance();
@@ -43,7 +44,7 @@ class SettingsService {
 
   Future<String> loadServerConfig() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyServer) ?? 'http://localhost:8080';
+    return prefs.getString(_keyServer) ?? 'ws://192.168.5.140:8080';
   }
 
   static const _keyBgmVolume = 'bgm_volume';
@@ -73,6 +74,17 @@ class SettingsService {
   Future<bool> loadVisualSettings() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_keyEnableEffects) ?? true;
+  }
+
+  // --- Gameplay Settings ---
+  Future<void> saveTurnDuration(int seconds) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keyTurnDuration, seconds);
+  }
+
+  Future<int> loadTurnDuration() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_keyTurnDuration) ?? 45;
   }
 }
 

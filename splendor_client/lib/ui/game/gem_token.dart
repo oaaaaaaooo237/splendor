@@ -48,7 +48,7 @@ class GemToken extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final enableEffects = ref.watch(visualSettingsProvider);
+    final enableEffects = ref.watch(visualSettingsProvider).enableEffects;
 
     return GestureDetector(
       onTap: onTap,

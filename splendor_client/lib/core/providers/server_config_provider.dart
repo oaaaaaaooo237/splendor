@@ -4,7 +4,7 @@ import '../persistence/settings_service.dart';
 class ServerConfigNotifier extends StateNotifier<String> {
   final SettingsService _service;
 
-  ServerConfigNotifier(this._service) : super('http://localhost:8080') {
+  ServerConfigNotifier(this._service) : super('https://192.168.5.140:58080') {
     _load();
   }
 

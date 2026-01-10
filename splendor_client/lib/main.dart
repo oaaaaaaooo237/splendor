@@ -10,9 +10,21 @@ import 'core/providers/theme_provider.dart';
 
 import 'package:window_manager/window_manager.dart';
 import 'ui/shell/frameless_window.dart';
+import 'dart:io'; // Import for HttpOverrides
+
+class MyHttpOverrides extends HttpOverrides{
+  @override
+  HttpClient createHttpClient(SecurityContext? context){
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port)=> true;
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Allow self-signed certificates for local NAS testing
+  HttpOverrides.global = MyHttpOverrides();
   
   // Configure Window (Window Manager)
   await windowManager.ensureInitialized();
