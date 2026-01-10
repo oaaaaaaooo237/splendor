@@ -70,7 +70,7 @@ class _WindowButtonState extends State<_WindowButton> {
    Widget build(BuildContext context) {
       Color bg = Colors.transparent;
       if (_isHovering) {
-         bg = widget.isClose ? Colors.red : Colors.white.withOpacity(0.1);
+         bg = widget.isClose ? Colors.red : Colors.white.withValues(alpha: 0.1);
       }
       
       return MouseRegion(

@@ -6,16 +6,15 @@ part of 'game_state.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$GameStateImpl _$$GameStateImplFromJson(Map<String, dynamic> json) =>
-    _$GameStateImpl(
+_$_GameState _$$_GameStateFromJson(Map<String, dynamic> json) => _$_GameState(
       id: json['id'] as String,
       players: (json['players'] as List<dynamic>)
           .map((e) => PlayerIdentity.fromJson(e as Map<String, dynamic>))
           .toList(),
-      turnIndex: (json['turnIndex'] as num).toInt(),
+      turnIndex: json['turnIndex'] as int,
       status: $enumDecode(_$GameStatusEnumMap, json['status']),
       availableGems: (json['availableGems'] as Map<String, dynamic>).map(
-        (k, e) => MapEntry($enumDecode(_$GemEnumMap, k), (e as num).toInt()),
+        (k, e) => MapEntry($enumDecode(_$GemEnumMap, k), e as int),
       ),
       tier1Cards: (json['tier1Cards'] as List<dynamic>)
           .map((e) => SplendorCard.fromJson(e as Map<String, dynamic>))
@@ -29,9 +28,9 @@ _$GameStateImpl _$$GameStateImplFromJson(Map<String, dynamic> json) =>
       nobles: (json['nobles'] as List<dynamic>)
           .map((e) => Noble.fromJson(e as Map<String, dynamic>))
           .toList(),
-      tier1DeckCount: (json['tier1DeckCount'] as num?)?.toInt() ?? 0,
-      tier2DeckCount: (json['tier2DeckCount'] as num?)?.toInt() ?? 0,
-      tier3DeckCount: (json['tier3DeckCount'] as num?)?.toInt() ?? 0,
+      tier1DeckCount: json['tier1DeckCount'] as int? ?? 0,
+      tier2DeckCount: json['tier2DeckCount'] as int? ?? 0,
+      tier3DeckCount: json['tier3DeckCount'] as int? ?? 0,
       playerStates: (json['playerStates'] as List<dynamic>)
           .map((e) => PlayerState.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -39,15 +38,14 @@ _$GameStateImpl _$$GameStateImplFromJson(Map<String, dynamic> json) =>
       isDraftValid: json['isDraftValid'] as bool? ?? false,
     );
 
-Map<String, dynamic> _$$GameStateImplToJson(_$GameStateImpl instance) =>
+Map<String, dynamic> _$$_GameStateToJson(_$_GameState instance) =>
     <String, dynamic>{
       'id': instance.id,
       'players': instance.players,
       'turnIndex': instance.turnIndex,
       'status': _$GameStatusEnumMap[instance.status]!,
-      'availableGems': instance.availableGems.map(
-        (k, e) => MapEntry(_$GemEnumMap[k]!, e),
-      ),
+      'availableGems':
+          instance.availableGems.map((k, e) => MapEntry(_$GemEnumMap[k]!, e)),
       'tier1Cards': instance.tier1Cards,
       'tier2Cards': instance.tier2Cards,
       'tier3Cards': instance.tier3Cards,
@@ -75,14 +73,14 @@ const _$GemEnumMap = {
   Gem.gold: 'gold',
 };
 
-_$PlayerStateImpl _$$PlayerStateImplFromJson(Map<String, dynamic> json) =>
-    _$PlayerStateImpl(
+_$_PlayerState _$$_PlayerStateFromJson(Map<String, dynamic> json) =>
+    _$_PlayerState(
       playerId: json['playerId'] as String,
       gems: (json['gems'] as Map<String, dynamic>).map(
-        (k, e) => MapEntry($enumDecode(_$GemEnumMap, k), (e as num).toInt()),
+        (k, e) => MapEntry($enumDecode(_$GemEnumMap, k), e as int),
       ),
       bonuses: (json['bonuses'] as Map<String, dynamic>).map(
-        (k, e) => MapEntry($enumDecode(_$GemEnumMap, k), (e as num).toInt()),
+        (k, e) => MapEntry($enumDecode(_$GemEnumMap, k), e as int),
       ),
       reservedCards: (json['reservedCards'] as List<dynamic>)
           .map((e) => SplendorCard.fromJson(e as Map<String, dynamic>))
@@ -93,10 +91,10 @@ _$PlayerStateImpl _$$PlayerStateImplFromJson(Map<String, dynamic> json) =>
       nobles: (json['nobles'] as List<dynamic>)
           .map((e) => Noble.fromJson(e as Map<String, dynamic>))
           .toList(),
-      score: (json['score'] as num).toInt(),
+      score: json['score'] as int,
     );
 
-Map<String, dynamic> _$$PlayerStateImplToJson(_$PlayerStateImpl instance) =>
+Map<String, dynamic> _$$_PlayerStateToJson(_$_PlayerState instance) =>
     <String, dynamic>{
       'playerId': instance.playerId,
       'gems': instance.gems.map((k, e) => MapEntry(_$GemEnumMap[k]!, e)),

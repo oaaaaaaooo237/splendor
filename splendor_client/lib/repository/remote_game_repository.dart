@@ -36,6 +36,10 @@ class RemoteGameRepository implements IGameRepository {
   @override
   Stream<GameState> get stateStream => _controller.stream;
 
+  int _turnDuration = 45; 
+  @override
+  int get turnDuration => _turnDuration;
+
   @override
   GameState get currentState {
      if (_cachedState == null) throw Exception("Game state not yet received from server");
@@ -52,6 +56,11 @@ class RemoteGameRepository implements IGameRepository {
       if (type == 'game_started' || type == 'game_update') {
          final stateJson = data['initialState'] ?? data['state'];
          _cachedState = GameState.fromJson(stateJson);
+         
+         // Update Settings if present
+         if (data['settings'] != null) {
+            _turnDuration = data['settings']['turnDuration'] ?? 45;
+         }
          
          // If game_started, it might include the authoritative players list
          final playersJson = data['players'] as List?;
@@ -97,8 +106,11 @@ class RemoteGameRepository implements IGameRepository {
      _send('login', {'playerId': uuid, 'name': name});
   }
   
-  void createRoom({String? roomId}) {
-     _send('create_room', {'roomId': roomId});
+  void createRoom({String? roomId, int turnDuration = 45}) {
+     _send('create_room', {
+        'roomId': roomId,
+        'settings': {'turnDuration': turnDuration} 
+     });
   }
   
   void joinRoom(String roomId) {

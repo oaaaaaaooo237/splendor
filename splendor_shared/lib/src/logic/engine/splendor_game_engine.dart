@@ -81,37 +81,22 @@ class SplendorGameEngine implements GameEngine {
     GameState newGameState = _state;
 
     if (type == 'buy_card') {
-        // 1. Identify Card (Already Validated)
         final cardId = action['cardId'];
         SplendorCard? card;
-        
-        // Find card on board
         List<SplendorCard>? sourceList;
+        
         if (newGameState.tier1Cards.any((c) => c.id == cardId)) {
-           sourceList = newGameState.tier1Cards;
-           card = sourceList.firstWhere((c) => c.id == cardId);
+           sourceList = newGameState.tier1Cards; card = sourceList.firstWhere((c) => c.id == cardId);
         } else if (newGameState.tier2Cards.any((c) => c.id == cardId)) {
-           sourceList = newGameState.tier2Cards;
-           card = sourceList.firstWhere((c) => c.id == cardId);
+           sourceList = newGameState.tier2Cards; card = sourceList.firstWhere((c) => c.id == cardId);
         } else if (newGameState.tier3Cards.any((c) => c.id == cardId)) {
-           sourceList = newGameState.tier3Cards;
-           card = sourceList.firstWhere((c) => c.id == cardId);
+           sourceList = newGameState.tier3Cards; card = sourceList.firstWhere((c) => c.id == cardId);
         }
         
         if (card == null) throw Exception("Card $cardId not found on board");
         
-        // 2. Pay Cost
-        newPlayerState = _payCost(newPlayerState, card, newGameState);
-        newGameState = newGameState.copyWith(
-           // Update available gems (received from payment) - _payCost returns updated player, we need to update board gems parallelly?
-           // Actually _payCost handles logic but we need to update Board Gems. 
-           // Let's refactor: _payCost returns transaction result?
-           // Simple approach: calculate cost, subtract from player, add to board.
-        );
-        // Re-do payment logic inline for state update clarity or use helper returning {player, boardGems}
+        // Calculate Cost & Move Gems
         final paymentResult = _calculatePayment(newPlayerState, card);
-        
-        // Update Player Gems (Subtract paid)
         final newPlayerGems = Map<Gem, int>.from(newPlayerState.gems);
         final newAvailableGems = Map<Gem, int>.from(newGameState.availableGems);
         
@@ -120,7 +105,7 @@ class SplendorGameEngine implements GameEngine {
             newAvailableGems[gem] = (newAvailableGems[gem] ?? 0) + count;
         });
         
-        // Update purchased cards & bonuses & score
+        // Update Player Lists & Score
         final newPurchased = List<SplendorCard>.from(newPlayerState.purchasedCards)..add(card);
         final newBonuses = Map<Gem, int>.from(newPlayerState.bonuses);
         newBonuses[card.bonusGem] = (newBonuses[card.bonusGem] ?? 0) + 1;
@@ -132,32 +117,33 @@ class SplendorGameEngine implements GameEngine {
            score: newPlayerState.score + card.points,
         );
         
-        // Remove from board
-        if (sourceList == newGameState.tier1Cards) {
-           newGameState = newGameState.copyWith(tier1Cards: [...newGameState.tier1Cards]..remove(card));
-        } else if (sourceList == newGameState.tier2Cards) {
-           newGameState = newGameState.copyWith(tier2Cards: [...newGameState.tier2Cards]..remove(card));
-        } else if (sourceList == newGameState.tier3Cards) {
-           newGameState = newGameState.copyWith(tier3Cards: [...newGameState.tier3Cards]..remove(card));
-        }
+        // Update Board & Refill (Atomic)
+        List<SplendorCard> t1 = List.from(newGameState.tier1Cards);
+        List<SplendorCard> t2 = List.from(newGameState.tier2Cards);
+        List<SplendorCard> t3 = List.from(newGameState.tier3Cards);
+        
+        if (sourceList == newGameState.tier1Cards) t1.remove(card);
+        else if (sourceList == newGameState.tier2Cards) t2.remove(card);
+        else if (sourceList == newGameState.tier3Cards) t3.remove(card);
 
-        // Refill Board (from Action Payload)
         if (action['replacementCard'] != null) {
-           final replacement = SplendorCard.fromJson(action['replacementCard']);
-           // Identify tier from replacement
-           if (replacement.tier == 1) newGameState = newGameState.copyWith(tier1Cards: [...newGameState.tier1Cards, replacement]);
-           if (replacement.tier == 2) newGameState = newGameState.copyWith(tier2Cards: [...newGameState.tier2Cards, replacement]);
-           if (replacement.tier == 3) newGameState = newGameState.copyWith(tier3Cards: [...newGameState.tier3Cards, replacement]);
+           final replacement = _cardFromPayload(action['replacementCard']);
+           if (replacement.tier == 1) t1.add(replacement);
+           else if (replacement.tier == 2) t2.add(replacement);
+           else if (replacement.tier == 3) t3.add(replacement);
         }
         
-        // Update Board Gems
+        newGameState = newGameState.copyWith(
+           tier1Cards: t1, tier2Cards: t2, tier3Cards: t3,
+           availableGems: newAvailableGems
+        );
         newGameState = newGameState.copyWith(availableGems: newAvailableGems);
 
     } else if (type == 'buy_reserved') {
         final cardId = action['cardId'];
         final card = newPlayerState.reservedCards.firstWhere((c) => c.id == cardId, orElse: () => throw Exception("Card not reserved"));
         
-        // Pay Cost
+        // 1. Pay Cost & Move Gems
         final paymentResult = _calculatePayment(newPlayerState, card);
         final newPlayerGems = Map<Gem, int>.from(newPlayerState.gems);
         final newAvailableGems = Map<Gem, int>.from(newGameState.availableGems);
@@ -167,8 +153,8 @@ class SplendorGameEngine implements GameEngine {
             newAvailableGems[gem] = (newAvailableGems[gem] ?? 0) + count;
         });
 
-        // Move to Purchased
-        final newReserved = List<SplendorCard>.from(newPlayerState.reservedCards)..remove(card);
+        // 2. Update player hand & score
+        final newReserved = List<SplendorCard>.from(newPlayerState.reservedCards)..removeWhere((c) => c.id == cardId);
         final newPurchased = List<SplendorCard>.from(newPlayerState.purchasedCards)..add(card);
         final newBonuses = Map<Gem, int>.from(newPlayerState.bonuses);
         newBonuses[card.bonusGem] = (newBonuses[card.bonusGem] ?? 0) + 1;
@@ -222,10 +208,10 @@ class SplendorGameEngine implements GameEngine {
 
         // Refill Board (from Action Payload)
         if (action['replacementCard'] != null) {
-           final replacement = SplendorCard.fromJson(action['replacementCard']);
+           final replacement = _cardFromPayload(action['replacementCard']);
            if (replacement.tier == 1) newGameState = newGameState.copyWith(tier1Cards: [...newGameState.tier1Cards, replacement]);
-           if (replacement.tier == 2) newGameState = newGameState.copyWith(tier2Cards: [...newGameState.tier2Cards, replacement]);
-           if (replacement.tier == 3) newGameState = newGameState.copyWith(tier3Cards: [...newGameState.tier3Cards, replacement]);
+           else if (replacement.tier == 2) newGameState = newGameState.copyWith(tier2Cards: [...newGameState.tier2Cards, replacement]);
+           else if (replacement.tier == 3) newGameState = newGameState.copyWith(tier3Cards: [...newGameState.tier3Cards, replacement]);
         }
 
     } else if (type == 'reserve_deck') {
@@ -233,7 +219,7 @@ class SplendorGameEngine implements GameEngine {
              throw Exception("reserve_deck requires 'drawnCard' in action payload");
         }
         
-        final drawnCard = SplendorCard.fromJson(action['drawnCard']);
+        final drawnCard = _cardFromPayload(action['drawnCard']);
              
         // Take Gold
         final newPlayerGems = Map<Gem, int>.from(newPlayerState.gems);
@@ -372,6 +358,12 @@ class SplendorGameEngine implements GameEngine {
    }
    
    return _PaymentResult(paidGems);
+  }
+
+  SplendorCard _cardFromPayload(dynamic payload) {
+    if (payload is SplendorCard) return payload;
+    if (payload is Map<String, dynamic>) return SplendorCard.fromJson(payload);
+    throw Exception("Invalid card payload type: ${payload.runtimeType}");
   }
 
   // Not strictly needed in interface but useful for logic

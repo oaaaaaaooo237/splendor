@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../repository/remote_game_repository.dart';
 import '../../core/providers/identity_provider.dart';
+import '../../core/providers/gameplay_settings_provider.dart'; // [NEW]
 import 'package:splendor_shared/splendor_shared.dart';
 import '../game/game_page.dart';
 
@@ -140,7 +141,10 @@ class _LobbyPageState extends ConsumerState<LobbyPage> {
                  
                  if (_currentRoomId == null) ...[
                     ElevatedButton(
-                       onPressed: () => _repository!.createRoom(), 
+                       onPressed: () {
+                          final settings = ref.read(gameplaySettingsProvider);
+                          _repository!.createRoom(turnDuration: settings.turnDuration);
+                       }, 
                        child: const Text("Create Room")
                     ),
                     const SizedBox(height: 16),

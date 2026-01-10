@@ -33,7 +33,7 @@ class LeaderboardPage extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).colorScheme.background,
+              Theme.of(context).scaffoldBackgroundColor,
               Colors.black87,
             ],
           ),
@@ -47,12 +47,12 @@ class LeaderboardPage extends StatelessWidget {
             final isTop3 = rank <= 3;
             
             return Card(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               margin: const EdgeInsets.only(bottom: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
                 side: BorderSide(
-                  color: isTop3 ? Colors.amber.withOpacity(0.5) : Colors.transparent, 
+                  color: isTop3 ? Colors.amber.withValues(alpha: 0.5) : Colors.transparent, 
                   width: 1
                 )
               ),

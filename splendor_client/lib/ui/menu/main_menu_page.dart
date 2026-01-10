@@ -38,7 +38,7 @@ class _MainMenuPageState extends ConsumerState<MainMenuPage> {
             end: Alignment.bottomCenter,
             colors: [
               Colors.black,
-              Theme.of(context).colorScheme.background,
+              Theme.of(context).scaffoldBackgroundColor,
               Colors.black,
             ],
           ),
@@ -70,7 +70,7 @@ class _MainMenuPageState extends ConsumerState<MainMenuPage> {
                 style: TextStyle(
                   fontSize: 14, 
                   letterSpacing: 6, 
-                  color: Colors.white.withOpacity(0.5)
+                  color: Colors.white.withValues(alpha: 0.5)
                 ),
               ).animate().fadeIn(delay: 500.ms),
 
@@ -141,9 +141,9 @@ class _MenuButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white.withOpacity(0.05),
+          backgroundColor: Colors.white.withValues(alpha: 0.05),
           foregroundColor: Colors.white,
-          side: BorderSide(color: Colors.white.withOpacity(0.1)),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
         child: Row(

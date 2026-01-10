@@ -1,21 +1,22 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../core/persistence/settings_service.dart';
+
 import '../../core/audio/audio_service.dart';
 import '../../core/providers/identity_provider.dart';
 import 'package:splendor_shared/splendor_shared.dart';
-import 'package:splendor_shared/src/logic/engine/splendor_game_engine.dart';
-import 'package:splendor_shared/src/logic/utils/game_setup_helper.dart';
+
 import '../../repository/game_repository.dart';
 import 'gem_token.dart';
 import 'victory_page.dart';
-import '../menu/main_menu_page.dart';
-import '../../core/providers/visual_settings_provider.dart';
+
+import '../../core/providers/gameplay_settings_provider.dart'; // [NEW]
+import '../settings/settings_page.dart';
 // New Widgets
 import 'widgets/game_hud.dart';
 import 'widgets/splendor_card_widget.dart';
-import 'widgets/noble_widget.dart';
+import 'widgets/noble_hover_widget.dart';
 
 class GamePage extends ConsumerStatefulWidget {
   final List<PlayerIdentity> players;
@@ -30,13 +31,36 @@ class GamePage extends ConsumerStatefulWidget {
 class _GamePageState extends ConsumerState<GamePage> {
   late IGameRepository _repository;
   bool _isProcessing = false;
-  int _roundCount = 1; // Track basic rounds (Turn Index / Player Count)
+  final int _roundCount = 1; // Track basic rounds (Turn Index / Player Count)
   
   @override
   void initState() {
     super.initState();
-    _repository = widget.repository ?? LocalGameRepository();
+    final settings = ref.read(gameplaySettingsProvider);
+    _repository = widget.repository ?? LocalGameRepository(turnDuration: settings.turnDuration);
+    
+    // Listen to State Changes (Important for Timeout / Bot updates)
+    _subscription = _repository.stateStream.listen((newState) {
+        if (mounted) {
+           setState(() {
+              // Update Round Count if needed
+              // check game over...
+           });
+           // Trigger Bot Check if turn changed?
+           _checkTurn(); 
+        }
+    });
+
     _initializeGame();
+  }
+
+  StreamSubscription<GameState>? _subscription;
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    _repository.dispose();
+    super.dispose();
   }
 
   bool _isCurrentTurn() {
@@ -126,10 +150,32 @@ class _GamePageState extends ConsumerState<GamePage> {
   // Hover State
   String? _hoveredOpponentId;
   PlayerState? _hoveredOpponentState;
+  
+  // Card Hover Overlay State
+  final GlobalKey _stackKey = GlobalKey();
+  SplendorCard? _hoveredCard;
+  Rect? _hoveredCardRect;
+
+  void _clearHover([SplendorCard? target]) {
+     if (_hoveredCard != null) {
+        // [FIX] Robustness: Only clear if we are clearing the currently hovered card.
+        // This prevents 'onExit' of Card A from clearing 'onEnter' of Card B if events overlap.
+        if (target != null && _hoveredCard != target) return;
+        
+        setState(() {
+           _hoveredCard = null;
+           _hoveredCardRect = null;
+        });
+     }
+  }
 
   // UI Interaction
   void _onTakeGem(Gem gem) {
-    if (_isProcessing || !_isCurrentTurn()) return;
+    if (!_isCurrentTurn()) {
+      _showError("Not your turn!");
+      return;
+    }
+    if (_isProcessing) return;
     
     // RULE FIX: Cannot take Gold directly
     if (gem == Gem.gold) {
@@ -149,6 +195,13 @@ class _GamePageState extends ConsumerState<GamePage> {
        final current = _draftGems[gem] ?? 0;
        
        if (current == 0) {
+          // Check availability first
+          final available = _repository.currentState.availableGems[gem] ?? 0;
+          if (available <= 0) {
+             _showError("该筹码已无剩余");
+             return;
+          }
+
           // Attempt to add 1
           bool hasDouble = _draftGems.values.any((v) => v == 2);
           if (_draftGems.length < 3 && !hasDouble) {
@@ -188,7 +241,11 @@ class _GamePageState extends ConsumerState<GamePage> {
   
   // Use new Card Widget logic
   void _onCardTap(SplendorCard card) {
-    if (_isProcessing || !_isCurrentTurn()) return;
+    if (_isProcessing) return; // Keep processing check
+    if (!_isCurrentTurn()) {
+       _showError("Not your turn!");
+       return;
+    }
     ref.read(audioServiceProvider).playSfx('click');
     
     // Check affordability
@@ -212,12 +269,16 @@ class _GamePageState extends ConsumerState<GamePage> {
                       _buildActionButton("购买", Colors.green, canBuy, () {
                           Navigator.pop(ctx);
                           _setDraftCard(card, false);
+                          // Auto Confirm for smoother UX
+                          _onConfirm();
                       }),
                       const SizedBox(width: 16),
                       // Reserve Button
                       _buildActionButton("预留", Colors.amber, canReserve, () {
                           Navigator.pop(ctx);
                           _setDraftCard(card, true);
+                          // Auto Confirm for smoother UX
+                          _onConfirm();
                       }),
                    ],
                 )
@@ -231,7 +292,7 @@ class _GamePageState extends ConsumerState<GamePage> {
       return AnimatedContainer(
          duration: 300.ms,
          decoration: BoxDecoration(
-            boxShadow: enabled ? [BoxShadow(color: color.withOpacity(0.5), blurRadius: 10, spreadRadius: 1)] : []
+            boxShadow: enabled ? [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 10, spreadRadius: 1)] : []
          ),
          child: ElevatedButton(
             onPressed: enabled ? onTap : null,
@@ -319,7 +380,7 @@ class _GamePageState extends ConsumerState<GamePage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_repository == null) return const Center(child: CircularProgressIndicator()); 
+    // if (_repository == null) return const Center(child: CircularProgressIndicator()); 
     
     GameState state;
     try { state = _repository.currentState; } catch (e) { return const Center(child: CircularProgressIndicator()); }
@@ -330,26 +391,29 @@ class _GamePageState extends ConsumerState<GamePage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF121212), 
-      body: IgnorePointer(
-        ignoring: !isMyTurn, 
-        child: SafeArea(
-        child: Stack(
-          children: [
+      body: SafeArea(
+      child: Stack(
+        key: _stackKey,
+        children: [
             // Background
             Positioned.fill(
-              child: Opacity(
-                opacity: 0.3,
-                child: Image.asset('assets/images/ui/board_bg.png', fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: const Color(0xFF121212))),
+              child: MouseRegion( // [FIX] Safety Net: Clear hover when touching background
+                onEnter: (_) => _clearHover(),
+                child: Opacity(
+                  opacity: 0.3,
+                  child: Image.asset('assets/images/ui/board_bg.png', fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: const Color(0xFF121212))),
+                ),
               ),
             ),
             
             Column(
               children: [
-                // [NEW] Top HUD
+                // Top HUD
                 GameHUD(
                    turnCount: _roundCount,
                    activePlayerName: activePlayer.name,
                    isMyTurn: isMyTurn,
+                   turnDuration: _repository.turnDuration, // [NEW]
                    onPause: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage())),
                 ),
                 
@@ -375,6 +439,7 @@ class _GamePageState extends ConsumerState<GamePage> {
                                      onEnter: (_) => setState(() {
                                         _hoveredOpponentId = opponents[i].uuid;
                                         _hoveredOpponentState = oppState;
+                                        _clearHover(); // [FIX] Clear card hover
                                      }),
                                      onExit: (_) => setState(() {
                                         _hoveredOpponentId = null;
@@ -417,7 +482,7 @@ class _GamePageState extends ConsumerState<GamePage> {
                                
                                const Divider(color: Colors.white10, height: 1),
 
-                               // Gems Bank (Moved Here)
+                               // Gems Bank
                                Container(
                                  padding: const EdgeInsets.symmetric(vertical: 8),
                                  color: Colors.black26,
@@ -473,38 +538,27 @@ class _GamePageState extends ConsumerState<GamePage> {
 
                          const VerticalDivider(width: 1, color: Colors.white10),
 
-                         // 3. Right Sidebar: Nobles (Paints LAST -> On Top)
+                         // 3. Right Sidebar: Nobles
                          Container(
                             width: 120,
                             color: Colors.black12,
-                            padding: const EdgeInsets.only(top: 16), // Remove symmetric vertical, manage bottom manually if needed
+                            padding: const EdgeInsets.only(top: 16),
                             child: Column(
                                mainAxisAlignment: MainAxisAlignment.start,
                                children: [
                                   const Text("NOBLES", style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
                                   const SizedBox(height: 16),
-                                  // Use ListView with Clip.none to handle overflow + allow hover expansion
                                   Expanded(
                                     child: ListView(
-                                      clipBehavior: Clip.none, // Crucial: Allow hover to paint outside bounds
-                                      padding: const EdgeInsets.symmetric(horizontal: 10), // Some padding
                                       children: state.nobles.map((n) => Padding(
                                          padding: const EdgeInsets.only(bottom: 12.0),
-                                         child: SizedBox(
-                                            width: 100, height: 100,
-                                            child: OverflowBox( 
-                                                maxWidth: 300, 
-                                                maxHeight: 300,
-                                                alignment: Alignment.centerRight,
-                                                child: NobleWidget(noble: n)
-                                            ),
+                                         child: Center(
+                                            // Using a custom widget that handles its own overlay
+                                            child: NobleHoverWidget(noble: n),
                                          ),
                                       )).toList(),
                                     ),
                                   ),
-                                  // Spacer to align with Gems Row? 
-                                  // The Sidebar is full height of Row (Board+Gems).
-                                  // This is exactly what we want.
                                ],
                             ),
                          ),
@@ -514,10 +568,6 @@ class _GamePageState extends ConsumerState<GamePage> {
                 
                 const Divider(color: Colors.white10, height: 1),
                 
-                // [DELETED] Gems Bank from here
-                
-                const Divider(color: Colors.white10, height: 1),
-
                 // 4. Player Area
                 if (myId != null)
                    _buildPlayerPanel(state.playerStates.firstWhere((p) => p.playerId == myId)),
@@ -529,12 +579,35 @@ class _GamePageState extends ConsumerState<GamePage> {
             // Hover Overlay for Opponents (Top Level of Stack)
             if (_hoveredOpponentId != null && _hoveredOpponentState != null)
                Positioned(
-                  top: 50, // Slightly higher to accommodate larger popup
+                  top: 50,
                   left: 140, 
                   child: _buildOpponentDetailOverlay(_hoveredOpponentState!),
                ),
+
+            // Card Hover Overlay (Fixes Occlusion)
+            if (_hoveredCard != null && _hoveredCardRect != null) ...[
+               // Capture current for closure
+               (() {
+                  final currentCard = _hoveredCard!;
+                  return Positioned(
+                     left: _hoveredCardRect!.left,
+                     top: _hoveredCardRect!.top,
+                     width: _hoveredCardRect!.width,
+                     height: _hoveredCardRect!.height,
+                     child: MouseRegion(
+                        onExit: (_) => _clearHover(currentCard), // Only clear if this card is still active
+                        child: SplendorCardWidget(
+                           card: currentCard,
+                           isAffordable: _canBuy(currentCard),
+                           isReserved: false, 
+                           isHoveredOverride: true, 
+                           onTap: () => _onCardTap(currentCard),
+                        ),
+                     ),
+                  );
+               })(),
+            ]
           ],
-        ),
       ),
       ),
     );
@@ -543,7 +616,7 @@ class _GamePageState extends ConsumerState<GamePage> {
    Widget _buildPlayerPanel(PlayerState myState) {
       return Container(
          height: 170, 
-         decoration: BoxDecoration(color: const Color(0xFF1E1E1E), border: Border(top: BorderSide(color: Colors.amber.withOpacity(0.3), width: 2))),
+         decoration: BoxDecoration(color: const Color(0xFF1E1E1E), border: Border(top: BorderSide(color: Colors.amber.withValues(alpha: 0.3), width: 2))),
          padding: const EdgeInsets.all(12),
          child: Row(
             children: [
@@ -573,7 +646,7 @@ class _GamePageState extends ConsumerState<GamePage> {
                                  width: 32, height: 42,
                                  margin: const EdgeInsets.only(right: 6),
                                  decoration: BoxDecoration(
-                                     color: gemColor.withOpacity(0.3), 
+                                     color: gemColor.withValues(alpha: 0.3), 
                                      border: Border.all(color: gemColor, width: 1.5), 
                                      borderRadius: BorderRadius.circular(4)
                                  ),
@@ -774,7 +847,7 @@ class _GamePageState extends ConsumerState<GamePage> {
                                  width: 28, height: 36,
                                  margin: const EdgeInsets.only(bottom: 8),
                                  decoration: BoxDecoration(
-                                    color: color.withOpacity(0.3),
+                                    color: color.withValues(alpha: 0.3),
                                     border: Border.all(color: color, width: 1.5),
                                     borderRadius: BorderRadius.circular(4)
                                  ),
@@ -798,36 +871,75 @@ class _GamePageState extends ConsumerState<GamePage> {
        );
     }
    
-   // Updated to return a 2x2 Grid Block
+   // Updated to return a 2x2 Grid Block with Hover Capture
    Widget _buildTierBlock(List<SplendorCard> cards, Color tierColor, String label) {
-       // Expecting 4 cards. Display as 2 rows of 2.
+       // Check if there are cards to display
+       if (cards.isEmpty) return const SizedBox.shrink();
+
+       // We want 2 rows of 2 cards
+       final row1 = cards.take(2).toList();
+       final row2 = cards.skip(2).take(2).toList();
+       
        return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16),
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-             border: Border.all(color: tierColor.withOpacity(0.3), width: 2),
+             border: Border.all(color: tierColor.withValues(alpha: 0.3), width: 2),
              borderRadius: BorderRadius.circular(12),
-             color: tierColor.withOpacity(0.05)
           ),
           child: Column(
-             mainAxisSize: MainAxisSize.min,
+             mainAxisAlignment: MainAxisAlignment.center,
              children: [
-                // Row 1
                 Row(
-                   children: cards.take(2).map((c) => 
-                      Padding(padding: const EdgeInsets.all(4), child: SplendorCardWidget(card: c, onTap: () => _onCardTap(c)))
-                   ).toList(),
+                   mainAxisAlignment: MainAxisAlignment.center,
+                   children: row1.map((c) => _buildHoverableCard(c)).toList(),
                 ),
-                // Row 2
-                Row(
-                   children: cards.skip(2).take(2).map((c) => 
-                      Padding(padding: const EdgeInsets.all(4), child: SplendorCardWidget(card: c, onTap: () => _onCardTap(c)))
-                   ).toList(),
-                )
+                if (row2.isNotEmpty)
+                  Row(
+                     mainAxisAlignment: MainAxisAlignment.center,
+                     children: row2.map((c) => _buildHoverableCard(c)).toList(),
+                  )
              ],
           ),
        );
    }
+
+   Widget _buildHoverableCard(SplendorCard card) {
+       return Builder(
+         builder: (context) {
+           return MouseRegion(
+              onEnter: (_) {
+                 // [FIX] Don't trigger if Opponent Overlay is active
+                 if (_hoveredOpponentId != null) return; 
+
+                 final renderBox = context.findRenderObject() as RenderBox?;
+                 final stackRenderBox = _stackKey.currentContext?.findRenderObject() as RenderBox?;
+                 
+                 if (renderBox != null && stackRenderBox != null) {
+                    final position = renderBox.localToGlobal(Offset.zero, ancestor: stackRenderBox);
+                    setState(() {
+                       _hoveredCard = card;
+                       _hoveredCardRect = position & renderBox.size;
+                    });
+                 }
+              },
+              // Note: We don't clear onExit here to prevent flicker when moving to overlay.
+              // We rely on the Overlay's onExit or a timeout if needed.
+              // Actually, clearing here is fine IF the Overlay appears instantly and captures the mouse.
+              // Let's try NOT clearing here first, but clearing when mouse leaves the Overlay.
+              // However, if mouse leaves card fast to outside, overlay won't appear? No, onEnter fires first.
+              child: SplendorCardWidget(
+                 card: card, 
+                 isAffordable: _canBuy(card), 
+                 isReserved: false,
+                 isHoveredOverride: false, // Don't scale the grid card
+                 onTap: () => _onCardTap(card)
+              ),
+           );
+         }
+       );
+   }
+
 
    Color _getGemColor(Gem gem) {
      switch (gem) {

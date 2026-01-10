@@ -12,8 +12,7 @@ part of 'player_identity.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
 PlayerIdentity _$PlayerIdentityFromJson(Map<String, dynamic> json) {
   return _PlayerIdentity.fromJson(json);
@@ -26,12 +25,8 @@ mixin _$PlayerIdentity {
   String get avatarId => throw _privateConstructorUsedError;
   bool get isBot => throw _privateConstructorUsedError;
 
-  /// Serializes this PlayerIdentity to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of PlayerIdentity
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $PlayerIdentityCopyWith<PlayerIdentity> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -39,9 +34,8 @@ mixin _$PlayerIdentity {
 /// @nodoc
 abstract class $PlayerIdentityCopyWith<$Res> {
   factory $PlayerIdentityCopyWith(
-    PlayerIdentity value,
-    $Res Function(PlayerIdentity) then,
-  ) = _$PlayerIdentityCopyWithImpl<$Res, PlayerIdentity>;
+          PlayerIdentity value, $Res Function(PlayerIdentity) then) =
+      _$PlayerIdentityCopyWithImpl<$Res, PlayerIdentity>;
   @useResult
   $Res call({String uuid, String name, String avatarId, bool isBot});
 }
@@ -56,8 +50,6 @@ class _$PlayerIdentityCopyWithImpl<$Res, $Val extends PlayerIdentity>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of PlayerIdentity
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -66,53 +58,46 @@ class _$PlayerIdentityCopyWithImpl<$Res, $Val extends PlayerIdentity>
     Object? avatarId = null,
     Object? isBot = null,
   }) {
-    return _then(
-      _value.copyWith(
-            uuid: null == uuid
-                ? _value.uuid
-                : uuid // ignore: cast_nullable_to_non_nullable
-                      as String,
-            name: null == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                      as String,
-            avatarId: null == avatarId
-                ? _value.avatarId
-                : avatarId // ignore: cast_nullable_to_non_nullable
-                      as String,
-            isBot: null == isBot
-                ? _value.isBot
-                : isBot // ignore: cast_nullable_to_non_nullable
-                      as bool,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      uuid: null == uuid
+          ? _value.uuid
+          : uuid // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      avatarId: null == avatarId
+          ? _value.avatarId
+          : avatarId // ignore: cast_nullable_to_non_nullable
+              as String,
+      isBot: null == isBot
+          ? _value.isBot
+          : isBot // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ) as $Val);
   }
 }
 
 /// @nodoc
-abstract class _$$PlayerIdentityImplCopyWith<$Res>
+abstract class _$$_PlayerIdentityCopyWith<$Res>
     implements $PlayerIdentityCopyWith<$Res> {
-  factory _$$PlayerIdentityImplCopyWith(
-    _$PlayerIdentityImpl value,
-    $Res Function(_$PlayerIdentityImpl) then,
-  ) = __$$PlayerIdentityImplCopyWithImpl<$Res>;
+  factory _$$_PlayerIdentityCopyWith(
+          _$_PlayerIdentity value, $Res Function(_$_PlayerIdentity) then) =
+      __$$_PlayerIdentityCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String uuid, String name, String avatarId, bool isBot});
 }
 
 /// @nodoc
-class __$$PlayerIdentityImplCopyWithImpl<$Res>
-    extends _$PlayerIdentityCopyWithImpl<$Res, _$PlayerIdentityImpl>
-    implements _$$PlayerIdentityImplCopyWith<$Res> {
-  __$$PlayerIdentityImplCopyWithImpl(
-    _$PlayerIdentityImpl _value,
-    $Res Function(_$PlayerIdentityImpl) _then,
-  ) : super(_value, _then);
+class __$$_PlayerIdentityCopyWithImpl<$Res>
+    extends _$PlayerIdentityCopyWithImpl<$Res, _$_PlayerIdentity>
+    implements _$$_PlayerIdentityCopyWith<$Res> {
+  __$$_PlayerIdentityCopyWithImpl(
+      _$_PlayerIdentity _value, $Res Function(_$_PlayerIdentity) _then)
+      : super(_value, _then);
 
-  /// Create a copy of PlayerIdentity
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -121,41 +106,38 @@ class __$$PlayerIdentityImplCopyWithImpl<$Res>
     Object? avatarId = null,
     Object? isBot = null,
   }) {
-    return _then(
-      _$PlayerIdentityImpl(
-        uuid: null == uuid
-            ? _value.uuid
-            : uuid // ignore: cast_nullable_to_non_nullable
-                  as String,
-        name: null == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
-                  as String,
-        avatarId: null == avatarId
-            ? _value.avatarId
-            : avatarId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        isBot: null == isBot
-            ? _value.isBot
-            : isBot // ignore: cast_nullable_to_non_nullable
-                  as bool,
-      ),
-    );
+    return _then(_$_PlayerIdentity(
+      uuid: null == uuid
+          ? _value.uuid
+          : uuid // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      avatarId: null == avatarId
+          ? _value.avatarId
+          : avatarId // ignore: cast_nullable_to_non_nullable
+              as String,
+      isBot: null == isBot
+          ? _value.isBot
+          : isBot // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$PlayerIdentityImpl implements _PlayerIdentity {
-  const _$PlayerIdentityImpl({
-    required this.uuid,
-    required this.name,
-    required this.avatarId,
-    this.isBot = false,
-  });
+class _$_PlayerIdentity implements _PlayerIdentity {
+  const _$_PlayerIdentity(
+      {required this.uuid,
+      required this.name,
+      required this.avatarId,
+      this.isBot = false});
 
-  factory _$PlayerIdentityImpl.fromJson(Map<String, dynamic> json) =>
-      _$$PlayerIdentityImplFromJson(json);
+  factory _$_PlayerIdentity.fromJson(Map<String, dynamic> json) =>
+      _$$_PlayerIdentityFromJson(json);
 
   @override
   final String uuid;
@@ -173,10 +155,10 @@ class _$PlayerIdentityImpl implements _PlayerIdentity {
   }
 
   @override
-  bool operator ==(Object other) {
+  bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$PlayerIdentityImpl &&
+            other is _$_PlayerIdentity &&
             (identical(other.uuid, uuid) || other.uuid == uuid) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.avatarId, avatarId) ||
@@ -184,37 +166,33 @@ class _$PlayerIdentityImpl implements _PlayerIdentity {
             (identical(other.isBot, isBot) || other.isBot == isBot));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, uuid, name, avatarId, isBot);
 
-  /// Create a copy of PlayerIdentity
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$PlayerIdentityImplCopyWith<_$PlayerIdentityImpl> get copyWith =>
-      __$$PlayerIdentityImplCopyWithImpl<_$PlayerIdentityImpl>(
-        this,
-        _$identity,
-      );
+  _$$_PlayerIdentityCopyWith<_$_PlayerIdentity> get copyWith =>
+      __$$_PlayerIdentityCopyWithImpl<_$_PlayerIdentity>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$PlayerIdentityImplToJson(this);
+    return _$$_PlayerIdentityToJson(
+      this,
+    );
   }
 }
 
 abstract class _PlayerIdentity implements PlayerIdentity {
-  const factory _PlayerIdentity({
-    required final String uuid,
-    required final String name,
-    required final String avatarId,
-    final bool isBot,
-  }) = _$PlayerIdentityImpl;
+  const factory _PlayerIdentity(
+      {required final String uuid,
+      required final String name,
+      required final String avatarId,
+      final bool isBot}) = _$_PlayerIdentity;
 
   factory _PlayerIdentity.fromJson(Map<String, dynamic> json) =
-      _$PlayerIdentityImpl.fromJson;
+      _$_PlayerIdentity.fromJson;
 
   @override
   String get uuid;
@@ -224,11 +202,8 @@ abstract class _PlayerIdentity implements PlayerIdentity {
   String get avatarId;
   @override
   bool get isBot;
-
-  /// Create a copy of PlayerIdentity
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$PlayerIdentityImplCopyWith<_$PlayerIdentityImpl> get copyWith =>
+  @JsonKey(ignore: true)
+  _$$_PlayerIdentityCopyWith<_$_PlayerIdentity> get copyWith =>
       throw _privateConstructorUsedError;
 }

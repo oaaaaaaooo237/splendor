@@ -12,8 +12,7 @@ part of 'noble.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
 Noble _$NobleFromJson(Map<String, dynamic> json) {
   return _Noble.fromJson(json);
@@ -25,12 +24,8 @@ mixin _$Noble {
   int get points => throw _privateConstructorUsedError;
   Map<Gem, int> get requirements => throw _privateConstructorUsedError;
 
-  /// Serializes this Noble to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Noble
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $NobleCopyWith<Noble> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -52,8 +47,6 @@ class _$NobleCopyWithImpl<$Res, $Val extends Noble>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Noble
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -61,48 +54,38 @@ class _$NobleCopyWithImpl<$Res, $Val extends Noble>
     Object? points = null,
     Object? requirements = null,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as String,
-            points: null == points
-                ? _value.points
-                : points // ignore: cast_nullable_to_non_nullable
-                      as int,
-            requirements: null == requirements
-                ? _value.requirements
-                : requirements // ignore: cast_nullable_to_non_nullable
-                      as Map<Gem, int>,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      points: null == points
+          ? _value.points
+          : points // ignore: cast_nullable_to_non_nullable
+              as int,
+      requirements: null == requirements
+          ? _value.requirements
+          : requirements // ignore: cast_nullable_to_non_nullable
+              as Map<Gem, int>,
+    ) as $Val);
   }
 }
 
 /// @nodoc
-abstract class _$$NobleImplCopyWith<$Res> implements $NobleCopyWith<$Res> {
-  factory _$$NobleImplCopyWith(
-    _$NobleImpl value,
-    $Res Function(_$NobleImpl) then,
-  ) = __$$NobleImplCopyWithImpl<$Res>;
+abstract class _$$_NobleCopyWith<$Res> implements $NobleCopyWith<$Res> {
+  factory _$$_NobleCopyWith(_$_Noble value, $Res Function(_$_Noble) then) =
+      __$$_NobleCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String id, int points, Map<Gem, int> requirements});
 }
 
 /// @nodoc
-class __$$NobleImplCopyWithImpl<$Res>
-    extends _$NobleCopyWithImpl<$Res, _$NobleImpl>
-    implements _$$NobleImplCopyWith<$Res> {
-  __$$NobleImplCopyWithImpl(
-    _$NobleImpl _value,
-    $Res Function(_$NobleImpl) _then,
-  ) : super(_value, _then);
+class __$$_NobleCopyWithImpl<$Res> extends _$NobleCopyWithImpl<$Res, _$_Noble>
+    implements _$$_NobleCopyWith<$Res> {
+  __$$_NobleCopyWithImpl(_$_Noble _value, $Res Function(_$_Noble) _then)
+      : super(_value, _then);
 
-  /// Create a copy of Noble
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -110,36 +93,34 @@ class __$$NobleImplCopyWithImpl<$Res>
     Object? points = null,
     Object? requirements = null,
   }) {
-    return _then(
-      _$NobleImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as String,
-        points: null == points
-            ? _value.points
-            : points // ignore: cast_nullable_to_non_nullable
-                  as int,
-        requirements: null == requirements
-            ? _value._requirements
-            : requirements // ignore: cast_nullable_to_non_nullable
-                  as Map<Gem, int>,
-      ),
-    );
+    return _then(_$_Noble(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      points: null == points
+          ? _value.points
+          : points // ignore: cast_nullable_to_non_nullable
+              as int,
+      requirements: null == requirements
+          ? _value._requirements
+          : requirements // ignore: cast_nullable_to_non_nullable
+              as Map<Gem, int>,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$NobleImpl implements _Noble {
-  const _$NobleImpl({
-    required this.id,
-    required this.points,
-    required final Map<Gem, int> requirements,
-  }) : _requirements = requirements;
+class _$_Noble implements _Noble {
+  const _$_Noble(
+      {required this.id,
+      required this.points,
+      required final Map<Gem, int> requirements})
+      : _requirements = requirements;
 
-  factory _$NobleImpl.fromJson(Map<String, dynamic> json) =>
-      _$$NobleImplFromJson(json);
+  factory _$_Noble.fromJson(Map<String, dynamic> json) =>
+      _$$_NobleFromJson(json);
 
   @override
   final String id;
@@ -159,49 +140,42 @@ class _$NobleImpl implements _Noble {
   }
 
   @override
-  bool operator ==(Object other) {
+  bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$NobleImpl &&
+            other is _$_Noble &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.points, points) || other.points == points) &&
-            const DeepCollectionEquality().equals(
-              other._requirements,
-              _requirements,
-            ));
+            const DeepCollectionEquality()
+                .equals(other._requirements, _requirements));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    points,
-    const DeepCollectionEquality().hash(_requirements),
-  );
+  int get hashCode => Object.hash(runtimeType, id, points,
+      const DeepCollectionEquality().hash(_requirements));
 
-  /// Create a copy of Noble
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$NobleImplCopyWith<_$NobleImpl> get copyWith =>
-      __$$NobleImplCopyWithImpl<_$NobleImpl>(this, _$identity);
+  _$$_NobleCopyWith<_$_Noble> get copyWith =>
+      __$$_NobleCopyWithImpl<_$_Noble>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$NobleImplToJson(this);
+    return _$$_NobleToJson(
+      this,
+    );
   }
 }
 
 abstract class _Noble implements Noble {
-  const factory _Noble({
-    required final String id,
-    required final int points,
-    required final Map<Gem, int> requirements,
-  }) = _$NobleImpl;
+  const factory _Noble(
+      {required final String id,
+      required final int points,
+      required final Map<Gem, int> requirements}) = _$_Noble;
 
-  factory _Noble.fromJson(Map<String, dynamic> json) = _$NobleImpl.fromJson;
+  factory _Noble.fromJson(Map<String, dynamic> json) = _$_Noble.fromJson;
 
   @override
   String get id;
@@ -209,11 +183,8 @@ abstract class _Noble implements Noble {
   int get points;
   @override
   Map<Gem, int> get requirements;
-
-  /// Create a copy of Noble
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$NobleImplCopyWith<_$NobleImpl> get copyWith =>
+  @JsonKey(ignore: true)
+  _$$_NobleCopyWith<_$_Noble> get copyWith =>
       throw _privateConstructorUsedError;
 }

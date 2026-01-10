@@ -1,6 +1,7 @@
 import 'room_manager.dart';
 import 'client_connection.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:splendor_shared/splendor_shared.dart';
 
 // CONTEXT:
 // Class: GameServer
@@ -24,6 +25,7 @@ class GameServer {
        final name = payload['name'] ?? 'Guest';
        
        client.playerId = pid;
+       client.name = name;
        _clients[pid] = client;
        
        client.send('login_ack', {'playerId': pid, 'message': 'Welcome $name'});
@@ -38,22 +40,26 @@ class GameServer {
     
     final pid = client.playerId!; // non-null asserted
     
-    // 2. Room Management
+     // 2. Room Management
     if (type == 'create_room') {
-       // Create Lobby
-       final roomId = roomManager.createLobby(pid, 'Host $pid');
+       // Support custom Room Name/ID
+       final requestedId = payload['roomId'];
+       final settings = payload['settings'] as Map<String, dynamic>?; // [NEW]
+       
+       final roomId = roomManager.createLobby(pid, client.name, customId: requestedId, settings: settings);
        client.roomId = roomId;
        client.send('room_created', {'roomId': roomId});
+       _broadcastLobbyUpdate(roomId);
        return;
     }
     
     if (type == 'join_room') {
        final roomId = payload['roomId'];
-       final success = roomManager.joinLobby(roomId, pid, 'Player $pid');
+       final success = roomManager.joinLobby(roomId, pid, client.name);
        if (success) {
           client.roomId = roomId;
           client.send('joined_room', {'roomId': roomId});
-          // Broadcast to others? Should do.
+          _broadcastLobbyUpdate(roomId);
        } else {
           client.sendError("Join failed (Room full or not found)");
        }
@@ -66,10 +72,18 @@ class GameServer {
        
        final room = roomManager.startGame(roomId);
        if (room != null) {
-          // Broadcast Game Start
+          // Inject broadcast callback
+          room.onBroadcast = (r, t, d) => _broadcastToRoom(r, t, d);
+          
+          // Broadcast Game Start with full player list for mapping
           _broadcastToRoom(room, 'game_started', {
-             'initialState': room.engine.currentState.toJson()
+             'initialState': room.engine.currentState.toJson(),
+             'players': room.playerIdentities.map((p) => p.toJson()).toList(),
+             'settings': {'turnDuration': room.turnDuration} // [NEW]
           });
+          
+          // Start Timer
+          room.startTurnTimer();
        } else {
           client.sendError("Start failed (Not owner or invalid room)");
        }
@@ -97,10 +111,37 @@ class GameServer {
              'state': room.engine.currentState.toJson(),
              'lastAction': action
           });
+          
+          // Restart Timer for next player
+          if (room.engine.currentState.status == GameStatus.playing) {
+             room.startTurnTimer();
+          } else {
+             room.stopTimer();
+          }
        } catch (e) {
           client.sendError("Action failed: $e");
        }
     }
+  }
+
+  void _broadcastLobbyUpdate(String roomId) {
+     final players = roomManager.getLobbyPlayers(roomId);
+     if (players == null) return;
+     
+     final data = {
+        'type': 'lobby_update',
+        'data': {
+           'roomId': roomId,
+           'players': players.map((p) => p.toJson()).toList(),
+        }
+     };
+     
+     for (var p in players) {
+        final c = _clients[p.uuid];
+        if (c != null) {
+           c.sendRaw(data);
+        }
+     }
   }
   
   void _broadcastToRoom(GameRoom room, String type, Map<String, dynamic> data) {

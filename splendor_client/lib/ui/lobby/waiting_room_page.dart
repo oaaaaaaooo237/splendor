@@ -4,6 +4,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/providers/identity_provider.dart';
 import '../game/game_page.dart';
 import 'package:splendor_shared/src/ai/bot_factory.dart';
+import 'package:splendor_shared/splendor_shared.dart';
+import '../../core/providers/gameplay_settings_provider.dart';
+import '../../repository/game_repository.dart';
 
 class WaitingRoomPage extends ConsumerStatefulWidget {
   const WaitingRoomPage({super.key});
@@ -115,8 +118,11 @@ class _WaitingRoomPageState extends ConsumerState<WaitingRoomPage> {
       return;
     }
 
-    // Navigate to GamePage with players
-    Navigator.push(context, MaterialPageRoute(builder: (_) => GamePage(players: players)));
+    // Navigate to GamePage with players and configured repository
+    final settings = ref.read(gameplaySettingsProvider);
+    final repository = LocalGameRepository(turnDuration: settings.turnDuration);
+    
+    Navigator.push(context, MaterialPageRoute(builder: (_) => GamePage(players: players, repository: repository)));
   }
 
   @override

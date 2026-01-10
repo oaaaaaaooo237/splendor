@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:splendor_shared/splendor_shared.dart';
 
-class SplendorCardWidget extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/providers/visual_settings_provider.dart';
+
+class SplendorCardWidget extends ConsumerStatefulWidget {
   final SplendorCard card;
   final bool isAffordable;
   final bool isReserved;
@@ -16,13 +19,16 @@ class SplendorCardWidget extends StatefulWidget {
     this.isReserved = false,
     this.onTap,
     this.onLongPress,
+    this.isHoveredOverride, // [NEW]
   });
 
+  final bool? isHoveredOverride;
+
   @override
-  State<SplendorCardWidget> createState() => _SplendorCardWidgetState();
+  ConsumerState<SplendorCardWidget> createState() => _SplendorCardWidgetState();
 }
 
-class _SplendorCardWidgetState extends State<SplendorCardWidget> {
+class _SplendorCardWidgetState extends ConsumerState<SplendorCardWidget> {
   bool _isHovered = false;
 
   Color _getGemColor(Gem gem) {
@@ -36,19 +42,14 @@ class _SplendorCardWidgetState extends State<SplendorCardWidget> {
     }
   }
 
-  List<Color> _getCardGradient(int tier) {
-     switch (tier) {
-        case 1: return [const Color(0xFF1B5E20), Colors.black]; // Green (Tier 1)
-        case 2: return [const Color(0xFFF57F17), Colors.black]; // Amber (Tier 2)
-        case 3: return [const Color(0xFF0D47A1), Colors.black]; // Blue (Tier 3)
-        default: return [Colors.grey[850]!, Colors.black];
-     }
-  }
+
 
   @override
   Widget build(BuildContext context) {
     // Base scale
-    final double scale = _isHovered ? 2.0 : 1.0;
+    final settings = ref.watch(visualSettingsProvider);
+    final bool isActiveHover = widget.isHoveredOverride ?? _isHovered;
+    final double scale = (isActiveHover && settings.enableEffects) ? 1.6 : 1.0;
     
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -60,7 +61,7 @@ class _SplendorCardWidgetState extends State<SplendorCardWidget> {
         child: AnimatedContainer(
           duration: 200.ms,
           curve: Curves.easeOut, // Fixed: easeOutBack caused negative blurRadius during overshoot
-          transform: Matrix4.identity()..scale(scale),
+          transform: Matrix4.diagonal3Values(scale, scale, 1.0),
           transformAlignment: Alignment.center,
           width: 80,
           height: 110,
@@ -70,17 +71,17 @@ class _SplendorCardWidgetState extends State<SplendorCardWidget> {
                // Deterministically pick one of 3 variants based on card ID
                image: AssetImage('assets/images/cards/level${widget.card.tier}_${(widget.card.id.hashCode % 3) + 1}.png'),
                fit: BoxFit.cover,
-               colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.3), BlendMode.darken)
+               colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: 0.3), BlendMode.darken)
             ),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: widget.isAffordable 
                   ? Colors.greenAccent 
-                  : (_isHovered ? Colors.white54 : Colors.white24),
+                  : (isActiveHover ? Colors.white54 : Colors.white24),
               width: widget.isAffordable ? 2 : 1.5
             ),
-            boxShadow: _isHovered 
-              ? [BoxShadow(color: Colors.black54, blurRadius: 10, spreadRadius: 2)] 
+            boxShadow: isActiveHover 
+              ? const [BoxShadow(color: Colors.black54, blurRadius: 10, spreadRadius: 2)] 
               : [],
           ),
           child: Stack(
@@ -120,9 +121,9 @@ class _SplendorCardWidgetState extends State<SplendorCardWidget> {
                       margin: const EdgeInsets.only(top: 2),
                       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                       decoration: BoxDecoration(
-                        color: _getGemColor(e.key).withOpacity(0.2),
+                        color: _getGemColor(e.key).withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: _getGemColor(e.key).withOpacity(0.6), width: 1)
+                        border: Border.all(color: _getGemColor(e.key).withValues(alpha: 0.6), width: 1)
                       ),
                       child: Row(
                          children: [
@@ -148,7 +149,7 @@ class _SplendorCardWidgetState extends State<SplendorCardWidget> {
                      decoration: BoxDecoration(
                         color: Colors.black87,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.amber.withOpacity(0.8), width: 1.5)
+                        border: Border.all(color: Colors.amber.withValues(alpha: 0.8), width: 1.5)
                      ),
                      child: const Icon(Icons.lock, color: Colors.amber, size: 16),
                   )

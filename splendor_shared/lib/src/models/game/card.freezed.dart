@@ -12,8 +12,7 @@ part of 'card.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
 SplendorCard _$SplendorCardFromJson(Map<String, dynamic> json) {
   return _SplendorCard.fromJson(json);
@@ -28,12 +27,8 @@ mixin _$SplendorCard {
       throw _privateConstructorUsedError; // The gem this card provides
   Map<Gem, int> get cost => throw _privateConstructorUsedError;
 
-  /// Serializes this SplendorCard to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of SplendorCard
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $SplendorCardCopyWith<SplendorCard> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -41,17 +36,11 @@ mixin _$SplendorCard {
 /// @nodoc
 abstract class $SplendorCardCopyWith<$Res> {
   factory $SplendorCardCopyWith(
-    SplendorCard value,
-    $Res Function(SplendorCard) then,
-  ) = _$SplendorCardCopyWithImpl<$Res, SplendorCard>;
+          SplendorCard value, $Res Function(SplendorCard) then) =
+      _$SplendorCardCopyWithImpl<$Res, SplendorCard>;
   @useResult
-  $Res call({
-    String id,
-    int tier,
-    int points,
-    Gem bonusGem,
-    Map<Gem, int> cost,
-  });
+  $Res call(
+      {String id, int tier, int points, Gem bonusGem, Map<Gem, int> cost});
 }
 
 /// @nodoc
@@ -64,8 +53,6 @@ class _$SplendorCardCopyWithImpl<$Res, $Val extends SplendorCard>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of SplendorCard
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -75,63 +62,51 @@ class _$SplendorCardCopyWithImpl<$Res, $Val extends SplendorCard>
     Object? bonusGem = null,
     Object? cost = null,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as String,
-            tier: null == tier
-                ? _value.tier
-                : tier // ignore: cast_nullable_to_non_nullable
-                      as int,
-            points: null == points
-                ? _value.points
-                : points // ignore: cast_nullable_to_non_nullable
-                      as int,
-            bonusGem: null == bonusGem
-                ? _value.bonusGem
-                : bonusGem // ignore: cast_nullable_to_non_nullable
-                      as Gem,
-            cost: null == cost
-                ? _value.cost
-                : cost // ignore: cast_nullable_to_non_nullable
-                      as Map<Gem, int>,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      tier: null == tier
+          ? _value.tier
+          : tier // ignore: cast_nullable_to_non_nullable
+              as int,
+      points: null == points
+          ? _value.points
+          : points // ignore: cast_nullable_to_non_nullable
+              as int,
+      bonusGem: null == bonusGem
+          ? _value.bonusGem
+          : bonusGem // ignore: cast_nullable_to_non_nullable
+              as Gem,
+      cost: null == cost
+          ? _value.cost
+          : cost // ignore: cast_nullable_to_non_nullable
+              as Map<Gem, int>,
+    ) as $Val);
   }
 }
 
 /// @nodoc
-abstract class _$$SplendorCardImplCopyWith<$Res>
+abstract class _$$_SplendorCardCopyWith<$Res>
     implements $SplendorCardCopyWith<$Res> {
-  factory _$$SplendorCardImplCopyWith(
-    _$SplendorCardImpl value,
-    $Res Function(_$SplendorCardImpl) then,
-  ) = __$$SplendorCardImplCopyWithImpl<$Res>;
+  factory _$$_SplendorCardCopyWith(
+          _$_SplendorCard value, $Res Function(_$_SplendorCard) then) =
+      __$$_SplendorCardCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String id,
-    int tier,
-    int points,
-    Gem bonusGem,
-    Map<Gem, int> cost,
-  });
+  $Res call(
+      {String id, int tier, int points, Gem bonusGem, Map<Gem, int> cost});
 }
 
 /// @nodoc
-class __$$SplendorCardImplCopyWithImpl<$Res>
-    extends _$SplendorCardCopyWithImpl<$Res, _$SplendorCardImpl>
-    implements _$$SplendorCardImplCopyWith<$Res> {
-  __$$SplendorCardImplCopyWithImpl(
-    _$SplendorCardImpl _value,
-    $Res Function(_$SplendorCardImpl) _then,
-  ) : super(_value, _then);
+class __$$_SplendorCardCopyWithImpl<$Res>
+    extends _$SplendorCardCopyWithImpl<$Res, _$_SplendorCard>
+    implements _$$_SplendorCardCopyWith<$Res> {
+  __$$_SplendorCardCopyWithImpl(
+      _$_SplendorCard _value, $Res Function(_$_SplendorCard) _then)
+      : super(_value, _then);
 
-  /// Create a copy of SplendorCard
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -141,59 +116,57 @@ class __$$SplendorCardImplCopyWithImpl<$Res>
     Object? bonusGem = null,
     Object? cost = null,
   }) {
-    return _then(
-      _$SplendorCardImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as String,
-        tier: null == tier
-            ? _value.tier
-            : tier // ignore: cast_nullable_to_non_nullable
-                  as int,
-        points: null == points
-            ? _value.points
-            : points // ignore: cast_nullable_to_non_nullable
-                  as int,
-        bonusGem: null == bonusGem
-            ? _value.bonusGem
-            : bonusGem // ignore: cast_nullable_to_non_nullable
-                  as Gem,
-        cost: null == cost
-            ? _value._cost
-            : cost // ignore: cast_nullable_to_non_nullable
-                  as Map<Gem, int>,
-      ),
-    );
+    return _then(_$_SplendorCard(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      tier: null == tier
+          ? _value.tier
+          : tier // ignore: cast_nullable_to_non_nullable
+              as int,
+      points: null == points
+          ? _value.points
+          : points // ignore: cast_nullable_to_non_nullable
+              as int,
+      bonusGem: null == bonusGem
+          ? _value.bonusGem
+          : bonusGem // ignore: cast_nullable_to_non_nullable
+              as Gem,
+      cost: null == cost
+          ? _value._cost
+          : cost // ignore: cast_nullable_to_non_nullable
+              as Map<Gem, int>,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$SplendorCardImpl implements _SplendorCard {
-  const _$SplendorCardImpl({
-    required this.id,
-    required this.tier,
-    required this.points,
-    required this.bonusGem,
-    required final Map<Gem, int> cost,
-  }) : _cost = cost;
+class _$_SplendorCard implements _SplendorCard {
+  const _$_SplendorCard(
+      {required this.id,
+      required this.tier,
+      required this.points,
+      required this.bonusGem,
+      required final Map<Gem, int> cost})
+      : _cost = cost;
 
-  factory _$SplendorCardImpl.fromJson(Map<String, dynamic> json) =>
-      _$$SplendorCardImplFromJson(json);
+  factory _$_SplendorCard.fromJson(Map<String, dynamic> json) =>
+      _$$_SplendorCardFromJson(json);
 
   @override
   final String id;
   @override
   final int tier;
-  // 1, 2, 3
+// 1, 2, 3
   @override
   final int points;
   @override
   final Gem bonusGem;
-  // The gem this card provides
+// The gem this card provides
   final Map<Gem, int> _cost;
-  // The gem this card provides
+// The gem this card provides
   @override
   Map<Gem, int> get cost {
     if (_cost is EqualUnmodifiableMapView) return _cost;
@@ -207,10 +180,10 @@ class _$SplendorCardImpl implements _SplendorCard {
   }
 
   @override
-  bool operator ==(Object other) {
+  bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SplendorCardImpl &&
+            other is _$_SplendorCard &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.tier, tier) || other.tier == tier) &&
             (identical(other.points, points) || other.points == points) &&
@@ -219,58 +192,48 @@ class _$SplendorCardImpl implements _SplendorCard {
             const DeepCollectionEquality().equals(other._cost, _cost));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    tier,
-    points,
-    bonusGem,
-    const DeepCollectionEquality().hash(_cost),
-  );
+  int get hashCode => Object.hash(runtimeType, id, tier, points, bonusGem,
+      const DeepCollectionEquality().hash(_cost));
 
-  /// Create a copy of SplendorCard
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$SplendorCardImplCopyWith<_$SplendorCardImpl> get copyWith =>
-      __$$SplendorCardImplCopyWithImpl<_$SplendorCardImpl>(this, _$identity);
+  _$$_SplendorCardCopyWith<_$_SplendorCard> get copyWith =>
+      __$$_SplendorCardCopyWithImpl<_$_SplendorCard>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$SplendorCardImplToJson(this);
+    return _$$_SplendorCardToJson(
+      this,
+    );
   }
 }
 
 abstract class _SplendorCard implements SplendorCard {
-  const factory _SplendorCard({
-    required final String id,
-    required final int tier,
-    required final int points,
-    required final Gem bonusGem,
-    required final Map<Gem, int> cost,
-  }) = _$SplendorCardImpl;
+  const factory _SplendorCard(
+      {required final String id,
+      required final int tier,
+      required final int points,
+      required final Gem bonusGem,
+      required final Map<Gem, int> cost}) = _$_SplendorCard;
 
   factory _SplendorCard.fromJson(Map<String, dynamic> json) =
-      _$SplendorCardImpl.fromJson;
+      _$_SplendorCard.fromJson;
 
   @override
   String get id;
   @override
-  int get tier; // 1, 2, 3
-  @override
+  int get tier;
+  @override // 1, 2, 3
   int get points;
   @override
-  Gem get bonusGem; // The gem this card provides
-  @override
+  Gem get bonusGem;
+  @override // The gem this card provides
   Map<Gem, int> get cost;
-
-  /// Create a copy of SplendorCard
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SplendorCardImplCopyWith<_$SplendorCardImpl> get copyWith =>
+  @JsonKey(ignore: true)
+  _$$_SplendorCardCopyWith<_$_SplendorCard> get copyWith =>
       throw _privateConstructorUsedError;
 }

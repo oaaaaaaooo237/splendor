@@ -6,18 +6,18 @@ part of 'card.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SplendorCardImpl _$$SplendorCardImplFromJson(Map<String, dynamic> json) =>
-    _$SplendorCardImpl(
+_$_SplendorCard _$$_SplendorCardFromJson(Map<String, dynamic> json) =>
+    _$_SplendorCard(
       id: json['id'] as String,
-      tier: (json['tier'] as num).toInt(),
-      points: (json['points'] as num).toInt(),
+      tier: json['tier'] as int,
+      points: json['points'] as int,
       bonusGem: $enumDecode(_$GemEnumMap, json['bonusGem']),
       cost: (json['cost'] as Map<String, dynamic>).map(
-        (k, e) => MapEntry($enumDecode(_$GemEnumMap, k), (e as num).toInt()),
+        (k, e) => MapEntry($enumDecode(_$GemEnumMap, k), e as int),
       ),
     );
 
-Map<String, dynamic> _$$SplendorCardImplToJson(_$SplendorCardImpl instance) =>
+Map<String, dynamic> _$$_SplendorCardToJson(_$_SplendorCard instance) =>
     <String, dynamic>{
       'id': instance.id,
       'tier': instance.tier,

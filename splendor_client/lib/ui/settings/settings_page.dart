@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/audio/audio_service.dart';
+
 import '../../core/providers/theme_provider.dart';
 import '../../core/providers/visual_settings_provider.dart';
 import '../../core/providers/server_config_provider.dart';
+import '../../core/providers/gameplay_settings_provider.dart'; // [NEW]
 import 'package:http/http.dart' as http;
 
 // CONTEXT:
@@ -15,7 +16,7 @@ class SettingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final audio = ref.watch(audioServiceProvider);
+
     
     return Scaffold(
       backgroundColor: Colors.blueGrey[900],
@@ -32,7 +33,21 @@ class SettingsPage extends ConsumerWidget {
                  return Column(
                    crossAxisAlignment: CrossAxisAlignment.start,
                    children: [
-                      const _SectionHeader("AUDIO & VISUAL"),
+                      // 1. VISUAL
+                      const _SectionHeader("VIDEO"), // Or VISUAL
+                      SwitchListTile(
+                        title: const Text("Enable Animations", style: TextStyle(color: Colors.white70)),
+                        subtitle: const Text("Particles and visual flair", style: TextStyle(color: Colors.white30, fontSize: 12)),
+                        value: settings.enableEffects,
+                        onChanged: (v) => notifier.toggle(v),
+                        activeThumbColor: Colors.amber,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+
+                      const Divider(color: Colors.white24, height: 40),
+
+                      // 2. AUDIO
+                      const _SectionHeader("AUDIO"),
                       
                       // Music Volume
                       _VolumeSlider(
@@ -49,23 +64,35 @@ class SettingsPage extends ConsumerWidget {
                          value: settings.sfxVolume,
                          onChanged: (v) => notifier.updateSfxVolume(v)
                       ),
-
-                      const SizedBox(height: 16),
-
-                      // Visual Effects
-                      SwitchListTile(
-                        title: const Text("Enable Animations", style: TextStyle(color: Colors.white70)),
-                        subtitle: const Text("Particles and visual flair", style: TextStyle(color: Colors.white30, fontSize: 12)),
-                        value: settings.enableEffects,
-                        onChanged: (v) => notifier.toggle(v),
-                        activeColor: Colors.amber,
-                        contentPadding: EdgeInsets.zero,
-                      ),
                    ],
                  );
               }
             ),
             
+            const Divider(color: Colors.white24, height: 40),
+
+            const _SectionHeader("GAMEPLAY"),
+            Consumer(
+               builder: (context, ref, _) {
+                  final settings = ref.watch(gameplaySettingsProvider);
+                  return ListTile(
+                     contentPadding: EdgeInsets.zero,
+                     title: const Text("Turn Duration", style: TextStyle(color: Colors.white70)),
+                     subtitle: const Text("Time limit per turn (Single Player / Host)", style: TextStyle(color: Colors.white30, fontSize: 12)),
+                     trailing: DropdownButton<int>(
+                        value: settings.turnDuration,
+                        dropdownColor: Colors.grey[900],
+                        style: const TextStyle(color: Colors.amber),
+                        underline: Container(),
+                        items: [30, 45, 60, 90].map((e) => DropdownMenuItem(value: e, child: Text("${e}s"))).toList(),
+                        onChanged: (v) {
+                           if (v != null) ref.read(gameplaySettingsProvider.notifier).setTurnDuration(v);
+                        }
+                     ),
+                  );
+               }
+            ),
+
             const Divider(color: Colors.white24, height: 40),
 
             const _SectionHeader("APP THEME"),
@@ -113,7 +140,12 @@ class SettingsPage extends ConsumerWidget {
                                  final url = ref.read(serverConfigProvider);
                                  try {
                                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Connecting...")));
-                                    final response = await http.get(Uri.parse("$url/health")); 
+                                    
+                                    var uri = Uri.parse(url);
+                                    if (uri.scheme == 'ws') uri = uri.replace(scheme: 'http');
+                                    if (uri.scheme == 'wss') uri = uri.replace(scheme: 'https');
+                                    
+                                    final response = await http.get(uri.replace(path: '/health')); 
                                     if (response.statusCode == 200 || response.statusCode == 404) {
                                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
                                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Success: Server Reachable!"), backgroundColor: Colors.green));
@@ -212,7 +244,7 @@ class _ThemeOption extends StatelessWidget {
                      color: color,
                      border: Border.all(color: isSelected ? Colors.amber : Colors.white24, width: isSelected ? 3 : 1),
                      borderRadius: BorderRadius.circular(24),
-                     boxShadow: isSelected ? [BoxShadow(color: Colors.amber.withOpacity(0.4), blurRadius: 8)] : []
+                     boxShadow: isSelected ? [BoxShadow(color: Colors.amber.withValues(alpha: 0.4), blurRadius: 8)] : []
                   ),
                   child: isSelected ? const Icon(Icons.check, color: Colors.amber, size: 28) : null,
                ),

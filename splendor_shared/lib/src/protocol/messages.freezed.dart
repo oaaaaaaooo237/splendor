@@ -12,8 +12,7 @@ part of 'messages.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
 ClientMessage _$ClientMessageFromJson(Map<String, dynamic> json) {
   switch (json['runtimeType']) {
@@ -27,12 +26,8 @@ ClientMessage _$ClientMessageFromJson(Map<String, dynamic> json) {
       return _Chat.fromJson(json);
 
     default:
-      throw CheckedFromJsonException(
-        json,
-        'runtimeType',
-        'ClientMessage',
-        'Invalid union type "${json['runtimeType']}"!',
-      );
+      throw CheckedFromJsonException(json, 'runtimeType', 'ClientMessage',
+          'Invalid union type "${json['runtimeType']}"!');
   }
 }
 
@@ -44,14 +39,16 @@ mixin _$ClientMessage {
     required TResult Function(bool isReady) ready,
     required TResult Function(Map<String, dynamic> actionData) action,
     required TResult Function(String message, String? emoji) chat,
-  }) => throw _privateConstructorUsedError;
+  }) =>
+      throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String roomId)? joinRoom,
     TResult? Function(bool isReady)? ready,
     TResult? Function(Map<String, dynamic> actionData)? action,
     TResult? Function(String message, String? emoji)? chat,
-  }) => throw _privateConstructorUsedError;
+  }) =>
+      throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String roomId)? joinRoom,
@@ -59,21 +56,24 @@ mixin _$ClientMessage {
     TResult Function(Map<String, dynamic> actionData)? action,
     TResult Function(String message, String? emoji)? chat,
     required TResult orElse(),
-  }) => throw _privateConstructorUsedError;
+  }) =>
+      throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(_JoinRoom value) joinRoom,
     required TResult Function(_Ready value) ready,
     required TResult Function(_Action value) action,
     required TResult Function(_Chat value) chat,
-  }) => throw _privateConstructorUsedError;
+  }) =>
+      throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(_JoinRoom value)? joinRoom,
     TResult? Function(_Ready value)? ready,
     TResult? Function(_Action value)? action,
     TResult? Function(_Chat value)? chat,
-  }) => throw _privateConstructorUsedError;
+  }) =>
+      throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(_JoinRoom value)? joinRoom,
@@ -81,18 +81,16 @@ mixin _$ClientMessage {
     TResult Function(_Action value)? action,
     TResult Function(_Chat value)? chat,
     required TResult orElse(),
-  }) => throw _privateConstructorUsedError;
-
-  /// Serializes this ClientMessage to a JSON map.
+  }) =>
+      throw _privateConstructorUsedError;
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $ClientMessageCopyWith<$Res> {
   factory $ClientMessageCopyWith(
-    ClientMessage value,
-    $Res Function(ClientMessage) then,
-  ) = _$ClientMessageCopyWithImpl<$Res, ClientMessage>;
+          ClientMessage value, $Res Function(ClientMessage) then) =
+      _$ClientMessageCopyWithImpl<$Res, ClientMessage>;
 }
 
 /// @nodoc
@@ -104,54 +102,47 @@ class _$ClientMessageCopyWithImpl<$Res, $Val extends ClientMessage>
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
-
-  /// Create a copy of ClientMessage
-  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
-abstract class _$$JoinRoomImplCopyWith<$Res> {
-  factory _$$JoinRoomImplCopyWith(
-    _$JoinRoomImpl value,
-    $Res Function(_$JoinRoomImpl) then,
-  ) = __$$JoinRoomImplCopyWithImpl<$Res>;
+abstract class _$$_JoinRoomCopyWith<$Res> {
+  factory _$$_JoinRoomCopyWith(
+          _$_JoinRoom value, $Res Function(_$_JoinRoom) then) =
+      __$$_JoinRoomCopyWithImpl<$Res>;
   @useResult
   $Res call({String roomId});
 }
 
 /// @nodoc
-class __$$JoinRoomImplCopyWithImpl<$Res>
-    extends _$ClientMessageCopyWithImpl<$Res, _$JoinRoomImpl>
-    implements _$$JoinRoomImplCopyWith<$Res> {
-  __$$JoinRoomImplCopyWithImpl(
-    _$JoinRoomImpl _value,
-    $Res Function(_$JoinRoomImpl) _then,
-  ) : super(_value, _then);
+class __$$_JoinRoomCopyWithImpl<$Res>
+    extends _$ClientMessageCopyWithImpl<$Res, _$_JoinRoom>
+    implements _$$_JoinRoomCopyWith<$Res> {
+  __$$_JoinRoomCopyWithImpl(
+      _$_JoinRoom _value, $Res Function(_$_JoinRoom) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ClientMessage
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? roomId = null}) {
-    return _then(
-      _$JoinRoomImpl(
-        roomId: null == roomId
-            ? _value.roomId
-            : roomId // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
+  $Res call({
+    Object? roomId = null,
+  }) {
+    return _then(_$_JoinRoom(
+      roomId: null == roomId
+          ? _value.roomId
+          : roomId // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$JoinRoomImpl implements _JoinRoom {
-  const _$JoinRoomImpl({required this.roomId, final String? $type})
-    : $type = $type ?? 'joinRoom';
+class _$_JoinRoom implements _JoinRoom {
+  const _$_JoinRoom({required this.roomId, final String? $type})
+      : $type = $type ?? 'joinRoom';
 
-  factory _$JoinRoomImpl.fromJson(Map<String, dynamic> json) =>
-      _$$JoinRoomImplFromJson(json);
+  factory _$_JoinRoom.fromJson(Map<String, dynamic> json) =>
+      _$$_JoinRoomFromJson(json);
 
   @override
   final String roomId;
@@ -165,24 +156,22 @@ class _$JoinRoomImpl implements _JoinRoom {
   }
 
   @override
-  bool operator ==(Object other) {
+  bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$JoinRoomImpl &&
+            other is _$_JoinRoom &&
             (identical(other.roomId, roomId) || other.roomId == roomId));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, roomId);
 
-  /// Create a copy of ClientMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$JoinRoomImplCopyWith<_$JoinRoomImpl> get copyWith =>
-      __$$JoinRoomImplCopyWithImpl<_$JoinRoomImpl>(this, _$identity);
+  _$$_JoinRoomCopyWith<_$_JoinRoom> get copyWith =>
+      __$$_JoinRoomCopyWithImpl<_$_JoinRoom>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -260,68 +249,60 @@ class _$JoinRoomImpl implements _JoinRoom {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$JoinRoomImplToJson(this);
+    return _$$_JoinRoomToJson(
+      this,
+    );
   }
 }
 
 abstract class _JoinRoom implements ClientMessage {
-  const factory _JoinRoom({required final String roomId}) = _$JoinRoomImpl;
+  const factory _JoinRoom({required final String roomId}) = _$_JoinRoom;
 
-  factory _JoinRoom.fromJson(Map<String, dynamic> json) =
-      _$JoinRoomImpl.fromJson;
+  factory _JoinRoom.fromJson(Map<String, dynamic> json) = _$_JoinRoom.fromJson;
 
   String get roomId;
-
-  /// Create a copy of ClientMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$JoinRoomImplCopyWith<_$JoinRoomImpl> get copyWith =>
+  @JsonKey(ignore: true)
+  _$$_JoinRoomCopyWith<_$_JoinRoom> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$ReadyImplCopyWith<$Res> {
-  factory _$$ReadyImplCopyWith(
-    _$ReadyImpl value,
-    $Res Function(_$ReadyImpl) then,
-  ) = __$$ReadyImplCopyWithImpl<$Res>;
+abstract class _$$_ReadyCopyWith<$Res> {
+  factory _$$_ReadyCopyWith(_$_Ready value, $Res Function(_$_Ready) then) =
+      __$$_ReadyCopyWithImpl<$Res>;
   @useResult
   $Res call({bool isReady});
 }
 
 /// @nodoc
-class __$$ReadyImplCopyWithImpl<$Res>
-    extends _$ClientMessageCopyWithImpl<$Res, _$ReadyImpl>
-    implements _$$ReadyImplCopyWith<$Res> {
-  __$$ReadyImplCopyWithImpl(
-    _$ReadyImpl _value,
-    $Res Function(_$ReadyImpl) _then,
-  ) : super(_value, _then);
+class __$$_ReadyCopyWithImpl<$Res>
+    extends _$ClientMessageCopyWithImpl<$Res, _$_Ready>
+    implements _$$_ReadyCopyWith<$Res> {
+  __$$_ReadyCopyWithImpl(_$_Ready _value, $Res Function(_$_Ready) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ClientMessage
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? isReady = null}) {
-    return _then(
-      _$ReadyImpl(
-        isReady: null == isReady
-            ? _value.isReady
-            : isReady // ignore: cast_nullable_to_non_nullable
-                  as bool,
-      ),
-    );
+  $Res call({
+    Object? isReady = null,
+  }) {
+    return _then(_$_Ready(
+      isReady: null == isReady
+          ? _value.isReady
+          : isReady // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$ReadyImpl implements _Ready {
-  const _$ReadyImpl({required this.isReady, final String? $type})
-    : $type = $type ?? 'ready';
+class _$_Ready implements _Ready {
+  const _$_Ready({required this.isReady, final String? $type})
+      : $type = $type ?? 'ready';
 
-  factory _$ReadyImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ReadyImplFromJson(json);
+  factory _$_Ready.fromJson(Map<String, dynamic> json) =>
+      _$$_ReadyFromJson(json);
 
   @override
   final bool isReady;
@@ -335,24 +316,22 @@ class _$ReadyImpl implements _Ready {
   }
 
   @override
-  bool operator ==(Object other) {
+  bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ReadyImpl &&
+            other is _$_Ready &&
             (identical(other.isReady, isReady) || other.isReady == isReady));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, isReady);
 
-  /// Create a copy of ClientMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$ReadyImplCopyWith<_$ReadyImpl> get copyWith =>
-      __$$ReadyImplCopyWithImpl<_$ReadyImpl>(this, _$identity);
+  _$$_ReadyCopyWith<_$_Ready> get copyWith =>
+      __$$_ReadyCopyWithImpl<_$_Ready>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -430,70 +409,62 @@ class _$ReadyImpl implements _Ready {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ReadyImplToJson(this);
+    return _$$_ReadyToJson(
+      this,
+    );
   }
 }
 
 abstract class _Ready implements ClientMessage {
-  const factory _Ready({required final bool isReady}) = _$ReadyImpl;
+  const factory _Ready({required final bool isReady}) = _$_Ready;
 
-  factory _Ready.fromJson(Map<String, dynamic> json) = _$ReadyImpl.fromJson;
+  factory _Ready.fromJson(Map<String, dynamic> json) = _$_Ready.fromJson;
 
   bool get isReady;
-
-  /// Create a copy of ClientMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ReadyImplCopyWith<_$ReadyImpl> get copyWith =>
+  @JsonKey(ignore: true)
+  _$$_ReadyCopyWith<_$_Ready> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$ActionImplCopyWith<$Res> {
-  factory _$$ActionImplCopyWith(
-    _$ActionImpl value,
-    $Res Function(_$ActionImpl) then,
-  ) = __$$ActionImplCopyWithImpl<$Res>;
+abstract class _$$_ActionCopyWith<$Res> {
+  factory _$$_ActionCopyWith(_$_Action value, $Res Function(_$_Action) then) =
+      __$$_ActionCopyWithImpl<$Res>;
   @useResult
   $Res call({Map<String, dynamic> actionData});
 }
 
 /// @nodoc
-class __$$ActionImplCopyWithImpl<$Res>
-    extends _$ClientMessageCopyWithImpl<$Res, _$ActionImpl>
-    implements _$$ActionImplCopyWith<$Res> {
-  __$$ActionImplCopyWithImpl(
-    _$ActionImpl _value,
-    $Res Function(_$ActionImpl) _then,
-  ) : super(_value, _then);
+class __$$_ActionCopyWithImpl<$Res>
+    extends _$ClientMessageCopyWithImpl<$Res, _$_Action>
+    implements _$$_ActionCopyWith<$Res> {
+  __$$_ActionCopyWithImpl(_$_Action _value, $Res Function(_$_Action) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ClientMessage
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? actionData = null}) {
-    return _then(
-      _$ActionImpl(
-        actionData: null == actionData
-            ? _value._actionData
-            : actionData // ignore: cast_nullable_to_non_nullable
-                  as Map<String, dynamic>,
-      ),
-    );
+  $Res call({
+    Object? actionData = null,
+  }) {
+    return _then(_$_Action(
+      actionData: null == actionData
+          ? _value._actionData
+          : actionData // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$ActionImpl implements _Action {
-  const _$ActionImpl({
-    required final Map<String, dynamic> actionData,
-    final String? $type,
-  }) : _actionData = actionData,
-       $type = $type ?? 'action';
+class _$_Action implements _Action {
+  const _$_Action(
+      {required final Map<String, dynamic> actionData, final String? $type})
+      : _actionData = actionData,
+        $type = $type ?? 'action';
 
-  factory _$ActionImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ActionImplFromJson(json);
+  factory _$_Action.fromJson(Map<String, dynamic> json) =>
+      _$$_ActionFromJson(json);
 
   final Map<String, dynamic> _actionData;
   @override
@@ -512,30 +483,24 @@ class _$ActionImpl implements _Action {
   }
 
   @override
-  bool operator ==(Object other) {
+  bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ActionImpl &&
-            const DeepCollectionEquality().equals(
-              other._actionData,
-              _actionData,
-            ));
+            other is _$_Action &&
+            const DeepCollectionEquality()
+                .equals(other._actionData, _actionData));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    const DeepCollectionEquality().hash(_actionData),
-  );
+      runtimeType, const DeepCollectionEquality().hash(_actionData));
 
-  /// Create a copy of ClientMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$ActionImplCopyWith<_$ActionImpl> get copyWith =>
-      __$$ActionImplCopyWithImpl<_$ActionImpl>(this, _$identity);
+  _$$_ActionCopyWith<_$_Action> get copyWith =>
+      __$$_ActionCopyWithImpl<_$_Action>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -613,70 +578,65 @@ class _$ActionImpl implements _Action {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ActionImplToJson(this);
+    return _$$_ActionToJson(
+      this,
+    );
   }
 }
 
 abstract class _Action implements ClientMessage {
   const factory _Action({required final Map<String, dynamic> actionData}) =
-      _$ActionImpl;
+      _$_Action;
 
-  factory _Action.fromJson(Map<String, dynamic> json) = _$ActionImpl.fromJson;
+  factory _Action.fromJson(Map<String, dynamic> json) = _$_Action.fromJson;
 
   Map<String, dynamic> get actionData;
-
-  /// Create a copy of ClientMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ActionImplCopyWith<_$ActionImpl> get copyWith =>
+  @JsonKey(ignore: true)
+  _$$_ActionCopyWith<_$_Action> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$ChatImplCopyWith<$Res> {
-  factory _$$ChatImplCopyWith(
-    _$ChatImpl value,
-    $Res Function(_$ChatImpl) then,
-  ) = __$$ChatImplCopyWithImpl<$Res>;
+abstract class _$$_ChatCopyWith<$Res> {
+  factory _$$_ChatCopyWith(_$_Chat value, $Res Function(_$_Chat) then) =
+      __$$_ChatCopyWithImpl<$Res>;
   @useResult
   $Res call({String message, String? emoji});
 }
 
 /// @nodoc
-class __$$ChatImplCopyWithImpl<$Res>
-    extends _$ClientMessageCopyWithImpl<$Res, _$ChatImpl>
-    implements _$$ChatImplCopyWith<$Res> {
-  __$$ChatImplCopyWithImpl(_$ChatImpl _value, $Res Function(_$ChatImpl) _then)
-    : super(_value, _then);
+class __$$_ChatCopyWithImpl<$Res>
+    extends _$ClientMessageCopyWithImpl<$Res, _$_Chat>
+    implements _$$_ChatCopyWith<$Res> {
+  __$$_ChatCopyWithImpl(_$_Chat _value, $Res Function(_$_Chat) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ClientMessage
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? message = null, Object? emoji = freezed}) {
-    return _then(
-      _$ChatImpl(
-        message: null == message
-            ? _value.message
-            : message // ignore: cast_nullable_to_non_nullable
-                  as String,
-        emoji: freezed == emoji
-            ? _value.emoji
-            : emoji // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+  $Res call({
+    Object? message = null,
+    Object? emoji = freezed,
+  }) {
+    return _then(_$_Chat(
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+      emoji: freezed == emoji
+          ? _value.emoji
+          : emoji // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$ChatImpl implements _Chat {
-  const _$ChatImpl({required this.message, this.emoji, final String? $type})
-    : $type = $type ?? 'chat';
+class _$_Chat implements _Chat {
+  const _$_Chat({required this.message, this.emoji, final String? $type})
+      : $type = $type ?? 'chat';
 
-  factory _$ChatImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ChatImplFromJson(json);
+  factory _$_Chat.fromJson(Map<String, dynamic> json) => _$$_ChatFromJson(json);
 
   @override
   final String message;
@@ -692,25 +652,23 @@ class _$ChatImpl implements _Chat {
   }
 
   @override
-  bool operator ==(Object other) {
+  bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ChatImpl &&
+            other is _$_Chat &&
             (identical(other.message, message) || other.message == message) &&
             (identical(other.emoji, emoji) || other.emoji == emoji));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, message, emoji);
 
-  /// Create a copy of ClientMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$ChatImplCopyWith<_$ChatImpl> get copyWith =>
-      __$$ChatImplCopyWithImpl<_$ChatImpl>(this, _$identity);
+  _$$_ChatCopyWith<_$_Chat> get copyWith =>
+      __$$_ChatCopyWithImpl<_$_Chat>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -788,24 +746,22 @@ class _$ChatImpl implements _Chat {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ChatImplToJson(this);
+    return _$$_ChatToJson(
+      this,
+    );
   }
 }
 
 abstract class _Chat implements ClientMessage {
   const factory _Chat({required final String message, final String? emoji}) =
-      _$ChatImpl;
+      _$_Chat;
 
-  factory _Chat.fromJson(Map<String, dynamic> json) = _$ChatImpl.fromJson;
+  factory _Chat.fromJson(Map<String, dynamic> json) = _$_Chat.fromJson;
 
   String get message;
   String? get emoji;
-
-  /// Create a copy of ClientMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ChatImplCopyWith<_$ChatImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  _$$_ChatCopyWith<_$_Chat> get copyWith => throw _privateConstructorUsedError;
 }
 
 ServerMessage _$ServerMessageFromJson(Map<String, dynamic> json) {
@@ -820,12 +776,8 @@ ServerMessage _$ServerMessageFromJson(Map<String, dynamic> json) {
       return _Notification.fromJson(json);
 
     default:
-      throw CheckedFromJsonException(
-        json,
-        'runtimeType',
-        'ServerMessage',
-        'Invalid union type "${json['runtimeType']}"!',
-      );
+      throw CheckedFromJsonException(json, 'runtimeType', 'ServerMessage',
+          'Invalid union type "${json['runtimeType']}"!');
   }
 }
 
@@ -837,14 +789,16 @@ mixin _$ServerMessage {
     required TResult Function(Map<String, dynamic> state) gameStateUpdate,
     required TResult Function(String message, String code) error,
     required TResult Function(String message) notification,
-  }) => throw _privateConstructorUsedError;
+  }) =>
+      throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(List<dynamic> rooms)? lobbyUpdate,
     TResult? Function(Map<String, dynamic> state)? gameStateUpdate,
     TResult? Function(String message, String code)? error,
     TResult? Function(String message)? notification,
-  }) => throw _privateConstructorUsedError;
+  }) =>
+      throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(List<dynamic> rooms)? lobbyUpdate,
@@ -852,21 +806,24 @@ mixin _$ServerMessage {
     TResult Function(String message, String code)? error,
     TResult Function(String message)? notification,
     required TResult orElse(),
-  }) => throw _privateConstructorUsedError;
+  }) =>
+      throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(_LobbyUpdate value) lobbyUpdate,
     required TResult Function(_GameStateUpdate value) gameStateUpdate,
     required TResult Function(_Error value) error,
     required TResult Function(_Notification value) notification,
-  }) => throw _privateConstructorUsedError;
+  }) =>
+      throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(_LobbyUpdate value)? lobbyUpdate,
     TResult? Function(_GameStateUpdate value)? gameStateUpdate,
     TResult? Function(_Error value)? error,
     TResult? Function(_Notification value)? notification,
-  }) => throw _privateConstructorUsedError;
+  }) =>
+      throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(_LobbyUpdate value)? lobbyUpdate,
@@ -874,18 +831,16 @@ mixin _$ServerMessage {
     TResult Function(_Error value)? error,
     TResult Function(_Notification value)? notification,
     required TResult orElse(),
-  }) => throw _privateConstructorUsedError;
-
-  /// Serializes this ServerMessage to a JSON map.
+  }) =>
+      throw _privateConstructorUsedError;
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $ServerMessageCopyWith<$Res> {
   factory $ServerMessageCopyWith(
-    ServerMessage value,
-    $Res Function(ServerMessage) then,
-  ) = _$ServerMessageCopyWithImpl<$Res, ServerMessage>;
+          ServerMessage value, $Res Function(ServerMessage) then) =
+      _$ServerMessageCopyWithImpl<$Res, ServerMessage>;
 }
 
 /// @nodoc
@@ -897,57 +852,49 @@ class _$ServerMessageCopyWithImpl<$Res, $Val extends ServerMessage>
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
-
-  /// Create a copy of ServerMessage
-  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
-abstract class _$$LobbyUpdateImplCopyWith<$Res> {
-  factory _$$LobbyUpdateImplCopyWith(
-    _$LobbyUpdateImpl value,
-    $Res Function(_$LobbyUpdateImpl) then,
-  ) = __$$LobbyUpdateImplCopyWithImpl<$Res>;
+abstract class _$$_LobbyUpdateCopyWith<$Res> {
+  factory _$$_LobbyUpdateCopyWith(
+          _$_LobbyUpdate value, $Res Function(_$_LobbyUpdate) then) =
+      __$$_LobbyUpdateCopyWithImpl<$Res>;
   @useResult
   $Res call({List<dynamic> rooms});
 }
 
 /// @nodoc
-class __$$LobbyUpdateImplCopyWithImpl<$Res>
-    extends _$ServerMessageCopyWithImpl<$Res, _$LobbyUpdateImpl>
-    implements _$$LobbyUpdateImplCopyWith<$Res> {
-  __$$LobbyUpdateImplCopyWithImpl(
-    _$LobbyUpdateImpl _value,
-    $Res Function(_$LobbyUpdateImpl) _then,
-  ) : super(_value, _then);
+class __$$_LobbyUpdateCopyWithImpl<$Res>
+    extends _$ServerMessageCopyWithImpl<$Res, _$_LobbyUpdate>
+    implements _$$_LobbyUpdateCopyWith<$Res> {
+  __$$_LobbyUpdateCopyWithImpl(
+      _$_LobbyUpdate _value, $Res Function(_$_LobbyUpdate) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ServerMessage
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? rooms = null}) {
-    return _then(
-      _$LobbyUpdateImpl(
-        rooms: null == rooms
-            ? _value._rooms
-            : rooms // ignore: cast_nullable_to_non_nullable
-                  as List<dynamic>,
-      ),
-    );
+  $Res call({
+    Object? rooms = null,
+  }) {
+    return _then(_$_LobbyUpdate(
+      rooms: null == rooms
+          ? _value._rooms
+          : rooms // ignore: cast_nullable_to_non_nullable
+              as List<dynamic>,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$LobbyUpdateImpl implements _LobbyUpdate {
-  const _$LobbyUpdateImpl({
-    required final List<dynamic> rooms,
-    final String? $type,
-  }) : _rooms = rooms,
-       $type = $type ?? 'lobbyUpdate';
+class _$_LobbyUpdate implements _LobbyUpdate {
+  const _$_LobbyUpdate(
+      {required final List<dynamic> rooms, final String? $type})
+      : _rooms = rooms,
+        $type = $type ?? 'lobbyUpdate';
 
-  factory _$LobbyUpdateImpl.fromJson(Map<String, dynamic> json) =>
-      _$$LobbyUpdateImplFromJson(json);
+  factory _$_LobbyUpdate.fromJson(Map<String, dynamic> json) =>
+      _$$_LobbyUpdateFromJson(json);
 
   final List<dynamic> _rooms;
   @override
@@ -966,25 +913,23 @@ class _$LobbyUpdateImpl implements _LobbyUpdate {
   }
 
   @override
-  bool operator ==(Object other) {
+  bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$LobbyUpdateImpl &&
+            other is _$_LobbyUpdate &&
             const DeepCollectionEquality().equals(other._rooms, _rooms));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode =>
       Object.hash(runtimeType, const DeepCollectionEquality().hash(_rooms));
 
-  /// Create a copy of ServerMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$LobbyUpdateImplCopyWith<_$LobbyUpdateImpl> get copyWith =>
-      __$$LobbyUpdateImplCopyWithImpl<_$LobbyUpdateImpl>(this, _$identity);
+  _$$_LobbyUpdateCopyWith<_$_LobbyUpdate> get copyWith =>
+      __$$_LobbyUpdateCopyWithImpl<_$_LobbyUpdate>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1062,72 +1007,66 @@ class _$LobbyUpdateImpl implements _LobbyUpdate {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$LobbyUpdateImplToJson(this);
+    return _$$_LobbyUpdateToJson(
+      this,
+    );
   }
 }
 
 abstract class _LobbyUpdate implements ServerMessage {
   const factory _LobbyUpdate({required final List<dynamic> rooms}) =
-      _$LobbyUpdateImpl;
+      _$_LobbyUpdate;
 
   factory _LobbyUpdate.fromJson(Map<String, dynamic> json) =
-      _$LobbyUpdateImpl.fromJson;
+      _$_LobbyUpdate.fromJson;
 
   List<dynamic> get rooms;
-
-  /// Create a copy of ServerMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$LobbyUpdateImplCopyWith<_$LobbyUpdateImpl> get copyWith =>
+  @JsonKey(ignore: true)
+  _$$_LobbyUpdateCopyWith<_$_LobbyUpdate> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$GameStateUpdateImplCopyWith<$Res> {
-  factory _$$GameStateUpdateImplCopyWith(
-    _$GameStateUpdateImpl value,
-    $Res Function(_$GameStateUpdateImpl) then,
-  ) = __$$GameStateUpdateImplCopyWithImpl<$Res>;
+abstract class _$$_GameStateUpdateCopyWith<$Res> {
+  factory _$$_GameStateUpdateCopyWith(
+          _$_GameStateUpdate value, $Res Function(_$_GameStateUpdate) then) =
+      __$$_GameStateUpdateCopyWithImpl<$Res>;
   @useResult
   $Res call({Map<String, dynamic> state});
 }
 
 /// @nodoc
-class __$$GameStateUpdateImplCopyWithImpl<$Res>
-    extends _$ServerMessageCopyWithImpl<$Res, _$GameStateUpdateImpl>
-    implements _$$GameStateUpdateImplCopyWith<$Res> {
-  __$$GameStateUpdateImplCopyWithImpl(
-    _$GameStateUpdateImpl _value,
-    $Res Function(_$GameStateUpdateImpl) _then,
-  ) : super(_value, _then);
+class __$$_GameStateUpdateCopyWithImpl<$Res>
+    extends _$ServerMessageCopyWithImpl<$Res, _$_GameStateUpdate>
+    implements _$$_GameStateUpdateCopyWith<$Res> {
+  __$$_GameStateUpdateCopyWithImpl(
+      _$_GameStateUpdate _value, $Res Function(_$_GameStateUpdate) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ServerMessage
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? state = null}) {
-    return _then(
-      _$GameStateUpdateImpl(
-        state: null == state
-            ? _value._state
-            : state // ignore: cast_nullable_to_non_nullable
-                  as Map<String, dynamic>,
-      ),
-    );
+  $Res call({
+    Object? state = null,
+  }) {
+    return _then(_$_GameStateUpdate(
+      state: null == state
+          ? _value._state
+          : state // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$GameStateUpdateImpl implements _GameStateUpdate {
-  const _$GameStateUpdateImpl({
-    required final Map<String, dynamic> state,
-    final String? $type,
-  }) : _state = state,
-       $type = $type ?? 'gameStateUpdate';
+class _$_GameStateUpdate implements _GameStateUpdate {
+  const _$_GameStateUpdate(
+      {required final Map<String, dynamic> state, final String? $type})
+      : _state = state,
+        $type = $type ?? 'gameStateUpdate';
 
-  factory _$GameStateUpdateImpl.fromJson(Map<String, dynamic> json) =>
-      _$$GameStateUpdateImplFromJson(json);
+  factory _$_GameStateUpdate.fromJson(Map<String, dynamic> json) =>
+      _$$_GameStateUpdateFromJson(json);
 
   final Map<String, dynamic> _state;
   @override
@@ -1146,28 +1085,23 @@ class _$GameStateUpdateImpl implements _GameStateUpdate {
   }
 
   @override
-  bool operator ==(Object other) {
+  bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$GameStateUpdateImpl &&
+            other is _$_GameStateUpdate &&
             const DeepCollectionEquality().equals(other._state, _state));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode =>
       Object.hash(runtimeType, const DeepCollectionEquality().hash(_state));
 
-  /// Create a copy of ServerMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$GameStateUpdateImplCopyWith<_$GameStateUpdateImpl> get copyWith =>
-      __$$GameStateUpdateImplCopyWithImpl<_$GameStateUpdateImpl>(
-        this,
-        _$identity,
-      );
+  _$$_GameStateUpdateCopyWith<_$_GameStateUpdate> get copyWith =>
+      __$$_GameStateUpdateCopyWithImpl<_$_GameStateUpdate>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1245,76 +1179,68 @@ class _$GameStateUpdateImpl implements _GameStateUpdate {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$GameStateUpdateImplToJson(this);
+    return _$$_GameStateUpdateToJson(
+      this,
+    );
   }
 }
 
 abstract class _GameStateUpdate implements ServerMessage {
   const factory _GameStateUpdate({required final Map<String, dynamic> state}) =
-      _$GameStateUpdateImpl;
+      _$_GameStateUpdate;
 
   factory _GameStateUpdate.fromJson(Map<String, dynamic> json) =
-      _$GameStateUpdateImpl.fromJson;
+      _$_GameStateUpdate.fromJson;
 
   Map<String, dynamic> get state;
-
-  /// Create a copy of ServerMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$GameStateUpdateImplCopyWith<_$GameStateUpdateImpl> get copyWith =>
+  @JsonKey(ignore: true)
+  _$$_GameStateUpdateCopyWith<_$_GameStateUpdate> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$ErrorImplCopyWith<$Res> {
-  factory _$$ErrorImplCopyWith(
-    _$ErrorImpl value,
-    $Res Function(_$ErrorImpl) then,
-  ) = __$$ErrorImplCopyWithImpl<$Res>;
+abstract class _$$_ErrorCopyWith<$Res> {
+  factory _$$_ErrorCopyWith(_$_Error value, $Res Function(_$_Error) then) =
+      __$$_ErrorCopyWithImpl<$Res>;
   @useResult
   $Res call({String message, String code});
 }
 
 /// @nodoc
-class __$$ErrorImplCopyWithImpl<$Res>
-    extends _$ServerMessageCopyWithImpl<$Res, _$ErrorImpl>
-    implements _$$ErrorImplCopyWith<$Res> {
-  __$$ErrorImplCopyWithImpl(
-    _$ErrorImpl _value,
-    $Res Function(_$ErrorImpl) _then,
-  ) : super(_value, _then);
+class __$$_ErrorCopyWithImpl<$Res>
+    extends _$ServerMessageCopyWithImpl<$Res, _$_Error>
+    implements _$$_ErrorCopyWith<$Res> {
+  __$$_ErrorCopyWithImpl(_$_Error _value, $Res Function(_$_Error) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ServerMessage
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? message = null, Object? code = null}) {
-    return _then(
-      _$ErrorImpl(
-        message: null == message
-            ? _value.message
-            : message // ignore: cast_nullable_to_non_nullable
-                  as String,
-        code: null == code
-            ? _value.code
-            : code // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
+  $Res call({
+    Object? message = null,
+    Object? code = null,
+  }) {
+    return _then(_$_Error(
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+      code: null == code
+          ? _value.code
+          : code // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$ErrorImpl implements _Error {
-  const _$ErrorImpl({
-    required this.message,
-    required this.code,
-    final String? $type,
-  }) : $type = $type ?? 'error';
+class _$_Error implements _Error {
+  const _$_Error(
+      {required this.message, required this.code, final String? $type})
+      : $type = $type ?? 'error';
 
-  factory _$ErrorImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ErrorImplFromJson(json);
+  factory _$_Error.fromJson(Map<String, dynamic> json) =>
+      _$$_ErrorFromJson(json);
 
   @override
   final String message;
@@ -1330,25 +1256,23 @@ class _$ErrorImpl implements _Error {
   }
 
   @override
-  bool operator ==(Object other) {
+  bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ErrorImpl &&
+            other is _$_Error &&
             (identical(other.message, message) || other.message == message) &&
             (identical(other.code, code) || other.code == code));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, message, code);
 
-  /// Create a copy of ServerMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$ErrorImplCopyWith<_$ErrorImpl> get copyWith =>
-      __$$ErrorImplCopyWithImpl<_$ErrorImpl>(this, _$identity);
+  _$$_ErrorCopyWith<_$_Error> get copyWith =>
+      __$$_ErrorCopyWithImpl<_$_Error>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1426,71 +1350,64 @@ class _$ErrorImpl implements _Error {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ErrorImplToJson(this);
+    return _$$_ErrorToJson(
+      this,
+    );
   }
 }
 
 abstract class _Error implements ServerMessage {
-  const factory _Error({
-    required final String message,
-    required final String code,
-  }) = _$ErrorImpl;
+  const factory _Error(
+      {required final String message, required final String code}) = _$_Error;
 
-  factory _Error.fromJson(Map<String, dynamic> json) = _$ErrorImpl.fromJson;
+  factory _Error.fromJson(Map<String, dynamic> json) = _$_Error.fromJson;
 
   String get message;
   String get code;
-
-  /// Create a copy of ServerMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ErrorImplCopyWith<_$ErrorImpl> get copyWith =>
+  @JsonKey(ignore: true)
+  _$$_ErrorCopyWith<_$_Error> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$NotificationImplCopyWith<$Res> {
-  factory _$$NotificationImplCopyWith(
-    _$NotificationImpl value,
-    $Res Function(_$NotificationImpl) then,
-  ) = __$$NotificationImplCopyWithImpl<$Res>;
+abstract class _$$_NotificationCopyWith<$Res> {
+  factory _$$_NotificationCopyWith(
+          _$_Notification value, $Res Function(_$_Notification) then) =
+      __$$_NotificationCopyWithImpl<$Res>;
   @useResult
   $Res call({String message});
 }
 
 /// @nodoc
-class __$$NotificationImplCopyWithImpl<$Res>
-    extends _$ServerMessageCopyWithImpl<$Res, _$NotificationImpl>
-    implements _$$NotificationImplCopyWith<$Res> {
-  __$$NotificationImplCopyWithImpl(
-    _$NotificationImpl _value,
-    $Res Function(_$NotificationImpl) _then,
-  ) : super(_value, _then);
+class __$$_NotificationCopyWithImpl<$Res>
+    extends _$ServerMessageCopyWithImpl<$Res, _$_Notification>
+    implements _$$_NotificationCopyWith<$Res> {
+  __$$_NotificationCopyWithImpl(
+      _$_Notification _value, $Res Function(_$_Notification) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ServerMessage
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? message = null}) {
-    return _then(
-      _$NotificationImpl(
-        message: null == message
-            ? _value.message
-            : message // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
+  $Res call({
+    Object? message = null,
+  }) {
+    return _then(_$_Notification(
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$NotificationImpl implements _Notification {
-  const _$NotificationImpl({required this.message, final String? $type})
-    : $type = $type ?? 'notification';
+class _$_Notification implements _Notification {
+  const _$_Notification({required this.message, final String? $type})
+      : $type = $type ?? 'notification';
 
-  factory _$NotificationImpl.fromJson(Map<String, dynamic> json) =>
-      _$$NotificationImplFromJson(json);
+  factory _$_Notification.fromJson(Map<String, dynamic> json) =>
+      _$$_NotificationFromJson(json);
 
   @override
   final String message;
@@ -1504,24 +1421,22 @@ class _$NotificationImpl implements _Notification {
   }
 
   @override
-  bool operator ==(Object other) {
+  bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$NotificationImpl &&
+            other is _$_Notification &&
             (identical(other.message, message) || other.message == message));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, message);
 
-  /// Create a copy of ServerMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$NotificationImplCopyWith<_$NotificationImpl> get copyWith =>
-      __$$NotificationImplCopyWithImpl<_$NotificationImpl>(this, _$identity);
+  _$$_NotificationCopyWith<_$_Notification> get copyWith =>
+      __$$_NotificationCopyWithImpl<_$_Notification>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1599,22 +1514,21 @@ class _$NotificationImpl implements _Notification {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$NotificationImplToJson(this);
+    return _$$_NotificationToJson(
+      this,
+    );
   }
 }
 
 abstract class _Notification implements ServerMessage {
   const factory _Notification({required final String message}) =
-      _$NotificationImpl;
+      _$_Notification;
 
   factory _Notification.fromJson(Map<String, dynamic> json) =
-      _$NotificationImpl.fromJson;
+      _$_Notification.fromJson;
 
   String get message;
-
-  /// Create a copy of ServerMessage
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$NotificationImplCopyWith<_$NotificationImpl> get copyWith =>
+  @JsonKey(ignore: true)
+  _$$_NotificationCopyWith<_$_Notification> get copyWith =>
       throw _privateConstructorUsedError;
 }

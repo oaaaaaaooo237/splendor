@@ -10,6 +10,7 @@ import 'package:splendor_shared/src/logic/utils/game_setup_helper.dart';
 abstract class IGameRepository {
   Stream<GameState> get stateStream;
   GameState get currentState;
+  int get turnDuration; // [NEW]
   
   Future<void> initialize(List<PlayerIdentity> players);
   Future<void> applyAction(Map<String, dynamic> action);
@@ -33,6 +34,12 @@ class LocalGameRepository implements IGameRepository {
   List<SplendorCard> _deck2 = [];
   List<SplendorCard> _deck3 = [];
 
+  final int _turnDuration;
+
+  LocalGameRepository({int turnDuration = 45}) : _turnDuration = turnDuration;
+
+  Timer? _timer;
+
   @override
   Stream<GameState> get stateStream => _controller.stream;
 
@@ -55,6 +62,21 @@ class LocalGameRepository implements IGameRepository {
     );
     
     _emitState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    if (_engine?.currentState.status == GameStatus.playing) {
+       _timer = Timer(Duration(seconds: _turnDuration), _onTimeout);
+    }
+  }
+
+  void _onTimeout() {
+     if (_engine == null) return;
+     _engine!.resolveTimeout();
+     _emitState();
+     _startTimer(); // Restart for next player
   }
 
   @override
@@ -71,6 +93,9 @@ class LocalGameRepository implements IGameRepository {
 
     _engine!.applyAction(action);
     _emitState();
+    
+    // Reset Timer on valid action
+    _startTimer();
   }
   
   // Helper to inject cards for Local Engine
@@ -113,6 +138,10 @@ class LocalGameRepository implements IGameRepository {
 
   @override
   void dispose() {
+    _timer?.cancel();
     _controller.close();
   }
+  
+  @override
+  int get turnDuration => _turnDuration; 
 }

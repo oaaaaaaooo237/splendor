@@ -1,0 +1,20 @@
+# Exclude git history
+.git
+.gitignore
+
+# Exclude build artifacts
+build/
+.dart_tool/
+.packages
+
+# Exclude client unrelated stuff from server build (optional but good)
+splendor_client/build/
+splendor_client/.dart_tool/
+
+# Exclude IDE folders
+.idea/
+.vscode/
+
+# Exclude generated binaries if any
+*.exe
+*.tar

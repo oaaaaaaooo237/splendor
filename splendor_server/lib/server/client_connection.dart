@@ -10,6 +10,7 @@ class ClientConnection {
   final WebSocketChannel channel;
   final GameServer server;
   String? playerId;
+  String name = 'Guest';
   String? roomId; // Current room (lobby or game)
 
   ClientConnection(this.channel, this.server) {
@@ -48,6 +49,10 @@ class ClientConnection {
       'data': data
     });
     channel.sink.add(message);
+  }
+
+  void sendRaw(Map<String, dynamic> data) {
+    channel.sink.add(jsonEncode(data));
   }
   
   void sendError(String message) {

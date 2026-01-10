@@ -62,7 +62,7 @@ class GemToken extends ConsumerWidget {
               shape: BoxShape.circle,
               boxShadow: showShadow ? [
                 BoxShadow(
-                  color: isSelected ? _color.withOpacity(0.8) : Colors.black54,
+                  color: isSelected ? _color.withValues(alpha: 0.8) : Colors.black54,
                   blurRadius: isSelected ? 12 : 6,
                   offset: const Offset(2, 4),
                 ),

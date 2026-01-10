@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 
 class GameHUD extends StatefulWidget {
   final int turnCount;
   final String activePlayerName;
   final bool isMyTurn;
+  final int turnDuration; // [NEW]
   final VoidCallback? onPause;
 
   const GameHUD({
@@ -13,6 +14,7 @@ class GameHUD extends StatefulWidget {
     required this.turnCount,
     required this.activePlayerName,
     required this.isMyTurn,
+    this.turnDuration = 45,
     this.onPause,
   });
 
@@ -21,10 +23,7 @@ class GameHUD extends StatefulWidget {
 }
 
 class _GameHUDState extends State<GameHUD> {
-  // TODO: Read this from SettingsService later
-  static const int _turnDuration = 45; 
-  
-  late int _remainingSeconds;
+  late int _remainingSeconds; 
   Timer? _timer;
   
   @override
@@ -37,7 +36,9 @@ class _GameHUDState extends State<GameHUD> {
   void didUpdateWidget(GameHUD oldWidget) {
     super.didUpdateWidget(oldWidget);
     // If turn changed, reset timer
-    if (oldWidget.activePlayerName != widget.activePlayerName || oldWidget.turnCount != widget.turnCount) {
+    if (oldWidget.activePlayerName != widget.activePlayerName || 
+        oldWidget.turnCount != widget.turnCount ||
+        oldWidget.turnDuration != widget.turnDuration) {
        _startTimer();
     }
   }
@@ -50,13 +51,14 @@ class _GameHUDState extends State<GameHUD> {
   
   void _startTimer() {
     _timer?.cancel();
-    _remainingSeconds = _turnDuration;
+    _remainingSeconds = widget.turnDuration;
+    if (_remainingSeconds <= 0) _remainingSeconds = 45; 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
        if (_remainingSeconds > 0) {
           if (mounted) setState(() => _remainingSeconds--);
        } else {
           timer.cancel();
-          // Timeout logic can go here
+          if (mounted) setState(() {}); 
        }
     });
   }
@@ -70,7 +72,8 @@ class _GameHUDState extends State<GameHUD> {
   @override
   Widget build(BuildContext context) {
     // Alert color if time is running out (< 10s)
-    final timerColor = _remainingSeconds <= 10 ? Colors.redAccent : Colors.white;
+    // Alert color if time is running out (< 10s)
+    final timerColor = _remainingSeconds <= 10 ? Colors.redAccent : Colors.white; 
     const iconColor = Colors.white54;
     
     return Container(
@@ -79,7 +82,7 @@ class _GameHUDState extends State<GameHUD> {
       decoration: BoxDecoration(
          gradient: LinearGradient(
             begin: Alignment.topCenter, end: Alignment.bottomCenter,
-            colors: [Colors.black.withOpacity(0.8), Colors.transparent]
+            colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent]
          )
       ),
       child: Row(
@@ -112,9 +115,9 @@ class _GameHUDState extends State<GameHUD> {
               ),
               child: Row(
                  children: [
-                    const Icon(Icons.timer, color: Colors.white54, size: 16),
+                    const Icon(Icons.timer, color: iconColor, size: 16),
                     const SizedBox(width: 8),
-                    Text(_formatTime(), style: const TextStyle(color: Colors.white, fontFamily: "monospace"))
+                    Text(_formatTime(), style: TextStyle(color: timerColor, fontFamily: "monospace"))
                  ],
               ),
            ),

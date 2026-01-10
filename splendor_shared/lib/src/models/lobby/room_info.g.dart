@@ -6,17 +6,16 @@ part of 'room_info.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$RoomInfoImpl _$$RoomInfoImplFromJson(Map<String, dynamic> json) =>
-    _$RoomInfoImpl(
+_$_RoomInfo _$$_RoomInfoFromJson(Map<String, dynamic> json) => _$_RoomInfo(
       roomId: json['roomId'] as String,
       hostName: json['hostName'] as String,
-      playerCount: (json['playerCount'] as num).toInt(),
-      maxPlayers: (json['maxPlayers'] as num).toInt(),
+      playerCount: json['playerCount'] as int,
+      maxPlayers: json['maxPlayers'] as int,
       isLocked: json['isLocked'] as bool,
       status: json['status'] as String,
     );
 
-Map<String, dynamic> _$$RoomInfoImplToJson(_$RoomInfoImpl instance) =>
+Map<String, dynamic> _$$_RoomInfoToJson(_$_RoomInfo instance) =>
     <String, dynamic>{
       'roomId': instance.roomId,
       'hostName': instance.hostName,
@@ -26,8 +25,8 @@ Map<String, dynamic> _$$RoomInfoImplToJson(_$RoomInfoImpl instance) =>
       'status': instance.status,
     };
 
-_$RoomDetailImpl _$$RoomDetailImplFromJson(Map<String, dynamic> json) =>
-    _$RoomDetailImpl(
+_$_RoomDetail _$$_RoomDetailFromJson(Map<String, dynamic> json) =>
+    _$_RoomDetail(
       roomId: json['roomId'] as String,
       hostId: json['hostId'] as String,
       players: (json['players'] as List<dynamic>)
@@ -37,7 +36,7 @@ _$RoomDetailImpl _$$RoomDetailImplFromJson(Map<String, dynamic> json) =>
       settings: GameSettings.fromJson(json['settings'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$RoomDetailImplToJson(_$RoomDetailImpl instance) =>
+Map<String, dynamic> _$$_RoomDetailToJson(_$_RoomDetail instance) =>
     <String, dynamic>{
       'roomId': instance.roomId,
       'hostId': instance.hostId,
@@ -46,14 +45,14 @@ Map<String, dynamic> _$$RoomDetailImplToJson(_$RoomDetailImpl instance) =>
       'settings': instance.settings,
     };
 
-_$GameSettingsImpl _$$GameSettingsImplFromJson(Map<String, dynamic> json) =>
-    _$GameSettingsImpl(
-      winScore: (json['winScore'] as num?)?.toInt() ?? 15,
-      maxTurnTimeSeconds: (json['maxTurnTimeSeconds'] as num?)?.toInt() ?? 30,
+_$_GameSettings _$$_GameSettingsFromJson(Map<String, dynamic> json) =>
+    _$_GameSettings(
+      winScore: json['winScore'] as int? ?? 15,
+      maxTurnTimeSeconds: json['maxTurnTimeSeconds'] as int? ?? 30,
       winMode: json['winMode'] as String? ?? 'score',
     );
 
-Map<String, dynamic> _$$GameSettingsImplToJson(_$GameSettingsImpl instance) =>
+Map<String, dynamic> _$$_GameSettingsToJson(_$_GameSettings instance) =>
     <String, dynamic>{
       'winScore': instance.winScore,
       'maxTurnTimeSeconds': instance.maxTurnTimeSeconds,

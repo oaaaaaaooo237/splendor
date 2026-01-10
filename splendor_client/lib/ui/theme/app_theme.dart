@@ -56,7 +56,7 @@ class DarkSplendorTheme extends SplendorTheme {
       primary: primary,
       secondary: secondary,
       surface: surface,
-      background: background,
+
     ),
     textTheme: GoogleFonts.cinzelTextTheme(ThemeData.dark().textTheme),
     useMaterial3: true,
@@ -99,7 +99,7 @@ class LightSplendorTheme extends SplendorTheme {
       primary: primary,
       secondary: secondary,
       surface: surface,
-      background: background,
+
     ),
     textTheme: GoogleFonts.cinzelTextTheme(ThemeData.light().textTheme),
     useMaterial3: true,

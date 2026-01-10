@@ -35,7 +35,7 @@ class _NobleWidgetState extends State<NobleWidget> {
       child: AnimatedContainer(
         duration: 200.ms,
         curve: Curves.easeOut,
-        transform: Matrix4.identity()..scale(scale),
+        transform: Matrix4.diagonal3Values(scale, scale, 1.0),
         transformAlignment: Alignment.centerRight, // Anchors to right, grows to left
         width: 100, // Increased Base Size
         height: 100, // Increased Base Size
@@ -43,7 +43,7 @@ class _NobleWidgetState extends State<NobleWidget> {
         decoration: BoxDecoration(
           color: const Color(0xFF3E2723),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.amber.withOpacity(0.5), width: 1.5),
+          border: Border.all(color: Colors.amber.withValues(alpha: 0.5), width: 1.5),
           boxShadow: _isHovered 
               ? [const BoxShadow(color: Colors.black54, blurRadius: 15, spreadRadius: 2)] 
               : [const BoxShadow(color: Colors.black54, blurRadius: 4, offset: Offset(2, 2))],
