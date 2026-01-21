@@ -1029,38 +1029,12 @@ class _GamePageState extends ConsumerState<GamePage> {
    }
 
    Widget _buildHoverableCard(SplendorCard card) {
-       return Builder(
-         builder: (context) {
-           return MouseRegion(
-              onEnter: (_) {
-                 // [FIX] Don't trigger if Opponent Overlay is active
-                 if (_hoveredOpponentId != null) return; 
-
-                 final renderBox = context.findRenderObject() as RenderBox?;
-                 final stackRenderBox = _stackKey.currentContext?.findRenderObject() as RenderBox?;
-                 
-                 if (renderBox != null && stackRenderBox != null) {
-                    final position = renderBox.localToGlobal(Offset.zero, ancestor: stackRenderBox);
-                    setState(() {
-                       _hoveredCard = card;
-                       _hoveredCardRect = position & renderBox.size;
-                    });
-                 }
-              },
-              // Note: We don't clear onExit here to prevent flicker when moving to overlay.
-              // We rely on the Overlay's onExit or a timeout if needed.
-              // Actually, clearing here is fine IF the Overlay appears instantly and captures the mouse.
-              // Let's try NOT clearing here first, but clearing when mouse leaves the Overlay.
-              // However, if mouse leaves card fast to outside, overlay won't appear? No, onEnter fires first.
-              child: SplendorCardWidget(
-                 card: card, 
-                 isAffordable: _canBuy(card), 
-                 isReserved: false,
-                 isHoveredOverride: false, // Don't scale the grid card
-                 onTap: () => _onCardTap(card)
-              ),
-           );
-         }
+       return SplendorCardWidget(
+          card: card, 
+          isAffordable: _canBuy(card), 
+          isReserved: false,
+          isHoveredOverride: null, // Allow internal hover logic
+          onTap: () => _onCardTap(card)
        );
    }
 

@@ -60,7 +60,7 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                    const Text("SPLENDOR", style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.amber)),
-                   const Text("PRIVATE CLOUD v3.8.1", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                   const Text("PRIVATE CLOUD v3.8.2", style: TextStyle(fontSize: 12, color: Colors.grey)),
                    const SizedBox(height: 64),
                    
                    // Option 1: Local Game (No Identity Required)
