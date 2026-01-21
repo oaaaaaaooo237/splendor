@@ -1,29 +1,35 @@
-# Splendor Private Cloud (v3.7 Stable)
+# Splendor Private Cloud (v3.8.2 Stable)
 
-## Release Notes (v3.7.0)
-**Release Date**: 2026-01-10
-**Status**: Stable
+> **当前稳定版本**: v3.8.2
+> **最后更新**: 2026-01-21
 
-### Test Status
-- **Single Player Mode**: Tested & Verified (Basic gameplay, bots, turn logic).
-- **Network Server**:
-  - WebSocket (WS): Tested & Verified.
-  - Secure WebSocket (WSS): Tested & Verified.
-- **Multiplayer Features**: Other online interaction features have *not* been fully regression tested in this release.
+## Release Notes (v3.8.2)
+**状态**: 稳定版 (Stable)
 
-### Changelog
-- **Standard Deck**: Implemented official Splendor card and noble distribution.
-- **Bug Fixes**:
-  - Fixed "Stuck Hover" effect on cards.
-  - Fixed logic allowing selection of 0-count gems.
-  - Corrected missing Noble assets (4 Black / 4 Green).
-  - Fixed local game timer duration settings.
+### 核心特性 (Key Features)
+- **本地对战 (Local Game)**: 支持 2-4 人本地多人对战 (Hotseat) 或与不同难度的 AI 对垒。
+- **自定义配置**:
+  - 目标分数 (Target Score): 动态设置胜利条件。
+  - 回合限时 (Turn Duration): 支持从 10秒到无限时长的灵活配置。
+- **视觉优化**: 
+  - **悬浮放大**: 全新设计的卡牌悬浮放大效果，支持 2x 视觉缩放，不再受窗口最大化导致的布局影响。
+  - **边界保护**: 悬浮组件自动避开屏幕边缘，确保信息完整展现。
+- **游戏退出**: 支持游戏内实时退出并保存设置。
 
-## Getting Started
+### 变更日志 (v3.8.0 - v3.8.2)
+- [v3.8.2] 修复最大化窗口下卡牌悬浮变小的 Bug，实现 Overlay 绝对定位悬浮。
+- [v3.8.1] 修复游戏结算逻辑；增加“回合时长”及“目标分数”选择器。
+- [v3.8.0] 重构主菜单，分离本地游戏与线上游戏入口。
 
-### Client
-Run `Splendor.exe` inside the `Client` folder.
+## 快速开始
 
-### Server
-- **Windows**: Run `server.exe`.
-- **Docker**: Load image `docker load -i splendor_server_v3.7.tar`.
+### 客户端 (Client)
+直接运行 `dist/v3.8.2-stable/Client/splendor_client.exe`。
+
+### 服务端 (Server)
+- **Windows**: 运行 `server.exe`。
+- **Docker**: 通过 `dist` 目录中的 Docker 资源部署。
+
+## 开发计划 (Roadmap)
+- [ ] **Android Port**: 手机端移植 (v1.0 版本开发中)。
+- [ ] **视觉增强**: 进一步优化 UI 动画及动效。
