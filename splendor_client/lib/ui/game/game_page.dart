@@ -69,7 +69,22 @@ class _GamePageState extends ConsumerState<GamePage> {
        if (state.status != GameStatus.playing) return false;
        final currentId = state.players[state.turnIndex].uuid;
        final myId = ref.read(identityProvider)?.uuid;
-       return currentId == myId;
+       
+       // Rule 1: Always my turn if identity matches
+       if (currentId == myId) return true;
+
+       // Rule 2: In Local Game, strict identity check is relaxed for Human Hotseat
+       // If repository is Local (implicit check or explicit if available), allow if currentPlayer is NOT a bot
+       // We can distinguish by checking if the current player is in our local list and is Human
+       final currentPlayerParams = widget.players.firstWhere((p) => p.uuid == currentId, orElse: () => widget.players.first);
+       
+       // If we are strictly in a local game context (started from LocalGameSetupPage), 
+       // then the user 'controls' all non-bot players.
+       if (_repository is LocalGameRepository && !currentPlayerParams.isBot) {
+          return true;
+       }
+       
+       return false;
      } catch (e) {
        return false;
      }
@@ -315,7 +330,25 @@ class _GamePageState extends ConsumerState<GamePage> {
   }
 
   bool _canBuy(SplendorCard card) {
-     final myState = _repository.currentState.playerStates.firstWhere((p) => p.playerId == ref.read(identityProvider)!.uuid);
+     // [FIX] Handles null identity for Local/Hotseat games
+     final identity = ref.read(identityProvider);
+     String? targetPlayerId;
+     
+     if (identity != null) {
+        targetPlayerId = identity.uuid;
+        // Verify this player is actually in the game (might be spectator or outdated)
+        if (!_repository.currentState.playerStates.any((p) => p.playerId == targetPlayerId)) {
+           targetPlayerId = null;
+        }
+     }
+     
+     // Fallback: If no identity (or not in game), assume we want to check affordability for the CURRENT TURN player
+     // This is standard for Hotseat mode.
+     if (targetPlayerId == null) {
+        targetPlayerId = _repository.currentState.playerStates[_repository.currentState.turnIndex].playerId;
+     }
+
+     final myState = _repository.currentState.playerStates.firstWhere((p) => p.playerId == targetPlayerId);
      
      int missing = 0;
      for (final entry in card.cost.entries) {
@@ -336,21 +369,53 @@ class _GamePageState extends ConsumerState<GamePage> {
   }
 
   bool _canReserve() {
-     final myState = _repository.currentState.playerStates.firstWhere((p) => p.playerId == ref.read(identityProvider)!.uuid);
+     // [FIX] Same logic for reserve
+     final identity = ref.read(identityProvider);
+     String? targetPlayerId;
+     
+     if (identity != null) {
+        targetPlayerId = identity.uuid;
+        if (!_repository.currentState.playerStates.any((p) => p.playerId == targetPlayerId)) {
+           targetPlayerId = null;
+        }
+     }
+     
+     if (targetPlayerId == null) {
+        targetPlayerId = _repository.currentState.playerStates[_repository.currentState.turnIndex].playerId;
+     }
+
+     final myState = _repository.currentState.playerStates.firstWhere((p) => p.playerId == targetPlayerId);
      return myState.reservedCards.length < 3;
   }
 
   void _onConfirm() async {
      if (_isProcessing) return;
-     final myId = ref.read(identityProvider)?.uuid;
-     if (myId == null) return;
+     // [FIX] Identity Fallback
+     final identity = ref.read(identityProvider)?.uuid;
+     String? actingPlayerId = identity;
+     if (actingPlayerId == null) {
+        // Fallback to current turn player if Hotseat
+        actingPlayerId = _repository.currentState.playerStates[_repository.currentState.turnIndex].playerId;
+     }
+     
+     if (actingPlayerId == null) return;
+     final myId = actingPlayerId; // Assign to existing var name to minimize diff
 
      Map<String, dynamic>? action;
      
      if (_draftGems.isNotEmpty) {
         action = {'type': 'take_gems', 'playerId': myId, 'gems': _draftGems.map((k, v) => MapEntry(k.name, v))};
      } else if (_draftCard != null) {
-        action = {'type': _isReserving ? 'reserve_card' : 'buy_card', 'playerId': myId, 'cardId': _draftCard!.id};
+        String type;
+        if (_isReserving) {
+           type = 'reserve_card';
+        } else {
+           // [FIX] Check if buying from reserved
+           final myState = _repository.currentState.playerStates.firstWhere((p) => p.playerId == myId);
+           final isReserved = myState.reservedCards.any((c) => c.id == _draftCard!.id);
+           type = isReserved ? 'buy_reserved' : 'buy_card';
+        }
+        action = {'type': type, 'playerId': myId, 'cardId': _draftCard!.id};
      }
 
      if (action != null) {
@@ -387,7 +452,11 @@ class _GamePageState extends ConsumerState<GamePage> {
     
     final activePlayer = widget.players.firstWhere((p) => p.uuid == state.players[state.turnIndex].uuid);
     final myId = ref.watch(identityProvider)?.uuid;
-    final isMyTurn = activePlayer.uuid == myId;
+    // [FIX] Determine who the "Local User" is controlling/viewing.
+    // If identity exists, it's that user.
+    // If null (Local/Hotseat), it defaults to the Current Turn Player (Active View).
+    final actingPlayerId = myId ?? state.players[state.turnIndex].uuid;
+    final isMyTurn = _isCurrentTurn(); // Use the shared logic
 
     return Scaffold(
       backgroundColor: const Color(0xFF121212), 
@@ -422,7 +491,7 @@ class _GamePageState extends ConsumerState<GamePage> {
                 // Main Content Area (Sidebar + Board + Gems + Sidebar)
                 Expanded(
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch, // [FIX] Ensure columns fill height
                     children: [
                          // 1. Left Sidebar: Opponents
                          Container(
@@ -548,15 +617,21 @@ class _GamePageState extends ConsumerState<GamePage> {
                                children: [
                                   const Text("NOBLES", style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
                                   const SizedBox(height: 16),
+                                  const SizedBox(height: 16),
                                   Expanded(
-                                    child: ListView(
-                                      children: state.nobles.map((n) => Padding(
-                                         padding: const EdgeInsets.only(bottom: 12.0),
-                                         child: Center(
-                                            // Using a custom widget that handles its own overlay
-                                            child: NobleHoverWidget(noble: n),
-                                         ),
-                                      )).toList(),
+                                    child: Scrollbar(
+                                       thumbVisibility: true,
+                                       // Using PrimaryScrollController to ensure Scrollbar finds the List's controller
+                                       child: ListView(
+                                          primary: true, 
+                                          children: state.nobles.map((n) => Padding(
+                                             padding: const EdgeInsets.only(bottom: 12.0),
+                                             child: Center(
+                                                // Using a custom widget that handles its own overlay
+                                                child: NobleHoverWidget(noble: n),
+                                             ),
+                                          )).toList(),
+                                       ),
                                     ),
                                   ),
                                ],
@@ -569,8 +644,8 @@ class _GamePageState extends ConsumerState<GamePage> {
                 const Divider(color: Colors.white10, height: 1),
                 
                 // 4. Player Area
-                if (myId != null)
-                   _buildPlayerPanel(state.playerStates.firstWhere((p) => p.playerId == myId)),
+                // [FIX] Always show panel for actingPlayerId
+                _buildPlayerPanel(state.playerStates.firstWhere((p) => p.playerId == actingPlayerId)),
               ],
             ),
              if (_isProcessing)
