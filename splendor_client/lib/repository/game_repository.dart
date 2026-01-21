@@ -35,8 +35,12 @@ class LocalGameRepository implements IGameRepository {
   List<SplendorCard> _deck3 = [];
 
   final int _turnDuration;
+  final int _targetScore; // [NEW]
 
-  LocalGameRepository({int turnDuration = 45}) : _turnDuration = turnDuration;
+  LocalGameRepository({
+      int turnDuration = 45, 
+      int targetScore = 15 // Default
+  }) : _turnDuration = turnDuration, _targetScore = targetScore;
 
   Timer? _timer;
 
@@ -58,7 +62,7 @@ class LocalGameRepository implements IGameRepository {
     
     _engine = SplendorGameEngine(
       initialState: setup.initialState,
-      winStrategy: PointsWinStrategy(targetPoints: 15),
+      winStrategy: PointsWinStrategy(targetPoints: _targetScore), // Use dynamic target
     );
     
     _emitState();

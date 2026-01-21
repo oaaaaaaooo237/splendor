@@ -13,6 +13,7 @@ import 'victory_page.dart';
 
 import '../../core/providers/gameplay_settings_provider.dart'; // [NEW]
 import '../settings/settings_page.dart';
+import '../welcome/welcome_page.dart'; // [NEW]
 // New Widgets
 import 'widgets/game_hud.dart';
 import 'widgets/splendor_card_widget.dart';
@@ -21,8 +22,10 @@ import 'widgets/noble_hover_widget.dart';
 class GamePage extends ConsumerStatefulWidget {
   final List<PlayerIdentity> players;
   final IGameRepository? repository; // Optional injected repository
+  final int? turnDuration; // [NEW] Optional override
+  final int? targetScore; // [NEW]
   
-  const GamePage({super.key, this.players = const [], this.repository});
+  const GamePage({super.key, this.players = const [], this.repository, this.turnDuration, this.targetScore});
   
   @override
   ConsumerState<GamePage> createState() => _GamePageState();
@@ -37,7 +40,14 @@ class _GamePageState extends ConsumerState<GamePage> {
   void initState() {
     super.initState();
     final settings = ref.read(gameplaySettingsProvider);
-    _repository = widget.repository ?? LocalGameRepository(turnDuration: settings.turnDuration);
+    // Use widget override if exists, otherwise global settings
+    final effectiveDuration = widget.turnDuration ?? settings.turnDuration;
+    final effectiveTargetScore = widget.targetScore ?? 15;
+    
+    _repository = widget.repository ?? LocalGameRepository(
+       turnDuration: effectiveDuration, 
+       targetScore: effectiveTargetScore
+    );
     
     // Listen to State Changes (Important for Timeout / Bot updates)
     _subscription = _repository.stateStream.listen((newState) {
@@ -61,6 +71,32 @@ class _GamePageState extends ConsumerState<GamePage> {
     _subscription?.cancel();
     _repository.dispose();
     super.dispose();
+  }
+
+  void _onExitGame() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+         backgroundColor: Colors.blueGrey[900],
+         title: const Text("Exit Game?", style: TextStyle(color: Colors.white)),
+         content: const Text("Are you sure you want to leave the game? Progress will be lost.", style: TextStyle(color: Colors.white70)),
+         actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
+            ElevatedButton(
+               style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+               onPressed: () {
+                  Navigator.pop(ctx); // Close dialog
+                  // Navigate to Main Menu logic (WelcomePage handles Menu now)
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const WelcomePage()), 
+                    (route) => false
+                  );
+               }, 
+               child: const Text("Exit")
+            )
+         ],
+      )
+    );
   }
 
   bool _isCurrentTurn() {
@@ -150,8 +186,20 @@ class _GamePageState extends ConsumerState<GamePage> {
     final state = _repository.currentState;
     final isSinglePlayer = widget.players.where((p) => !p.isBot).length <= 1;
 
+    // [FIX] Sort players to find true winner (Standard Rules)
+    // 1. Highest Score
+    // 2. Fewest Purchased Cards (Tier Breaker)
+    final sortedPlayers = List<PlayerState>.from(state.playerStates);
+    sortedPlayers.sort((a, b) {
+       final scoreDiff = b.score.compareTo(a.score);
+       if (scoreDiff != 0) return scoreDiff;
+       return a.purchasedCards.length.compareTo(b.purchasedCards.length); 
+    });
+    
+    final winner = sortedPlayers.first;
+
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => VictoryPage(
-       winner: state.playerStates[state.turnIndex], 
+       winner: winner, 
        onRestart: isSinglePlayer ? () {
          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => GamePage(players: widget.players)));
        } : null 
@@ -477,14 +525,15 @@ class _GamePageState extends ConsumerState<GamePage> {
             
             Column(
               children: [
-                // Top HUD
-                GameHUD(
-                   turnCount: _roundCount,
-                   activePlayerName: activePlayer.name,
-                   isMyTurn: isMyTurn,
-                   turnDuration: _repository.turnDuration, // [NEW]
-                   onPause: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage())),
-                ),
+                  // 1. HUD
+                  GameHUD(
+                     turnCount: state.turnIndex ~/ state.players.length + 1, // Simple Round Calc
+                     activePlayerName: activePlayer.name,
+                     isMyTurn: isMyTurn,
+                     turnDuration: _repository.turnDuration,
+                     onPause: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage())),
+                     onExit: _onExitGame, // [NEW]
+                  ),
                 
                 const Divider(color: Colors.white10, height: 1),
 

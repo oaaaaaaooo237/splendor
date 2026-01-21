@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'ui/welcome/welcome_page.dart';
-import 'ui/lobby/lobby_page.dart';
 import 'core/providers/identity_loader.dart';
-import 'core/providers/identity_provider.dart';
 import 'core/providers/theme_provider.dart';
 
 import 'package:window_manager/window_manager.dart';

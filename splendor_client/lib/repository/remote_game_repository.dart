@@ -106,10 +106,13 @@ class RemoteGameRepository implements IGameRepository {
      _send('login', {'playerId': uuid, 'name': name});
   }
   
-  void createRoom({String? roomId, int turnDuration = 45}) {
+  void createRoom({String? roomId, int turnDuration = 45, int targetScore = 15}) {
      _send('create_room', {
         'roomId': roomId,
-        'settings': {'turnDuration': turnDuration} 
+        'settings': {
+           'turnDuration': turnDuration,
+           'targetScore': targetScore
+        } 
      });
   }
   

@@ -8,6 +8,7 @@ class GameHUD extends StatefulWidget {
   final bool isMyTurn;
   final int turnDuration; // [NEW]
   final VoidCallback? onPause;
+  final VoidCallback? onExit; // [NEW]
 
   const GameHUD({
     super.key,
@@ -16,6 +17,7 @@ class GameHUD extends StatefulWidget {
     required this.isMyTurn,
     this.turnDuration = 45,
     this.onPause,
+    this.onExit,
   });
 
   @override
@@ -51,8 +53,10 @@ class _GameHUDState extends State<GameHUD> {
   
   void _startTimer() {
     _timer?.cancel();
+    // If Unlimited, don't start timer
+    if (widget.turnDuration <= 0) return;
+
     _remainingSeconds = widget.turnDuration;
-    if (_remainingSeconds <= 0) _remainingSeconds = 45; 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
        if (_remainingSeconds > 0) {
           if (mounted) setState(() => _remainingSeconds--);
@@ -64,6 +68,7 @@ class _GameHUDState extends State<GameHUD> {
   }
   
   String _formatTime() {
+     if (widget.turnDuration <= 0) return "∞";
      final min = (_remainingSeconds ~/ 60).toString().padLeft(2, '0');
      final sec = (_remainingSeconds % 60).toString().padLeft(2, '0');
      return "$min:$sec";
@@ -124,11 +129,22 @@ class _GameHUDState extends State<GameHUD> {
            
            const Spacer(),
            
-           // Settings / Pause
-           IconButton(
-              onPressed: widget.onPause, 
-              icon: const Icon(Icons.settings, color: Colors.white70)
-           )
+            // Settings / Pause / Exit
+            Row(
+               children: [
+                   IconButton(
+                      onPressed: widget.onPause, 
+                      icon: const Icon(Icons.settings, color: Colors.white70),
+                      tooltip: "Settings",
+                   ),
+                   if (widget.onExit != null)
+                      IconButton(
+                        onPressed: widget.onExit,
+                        icon: const Icon(Icons.meeting_room, color: Colors.redAccent),
+                        tooltip: "Exit Game",
+                      )
+               ],
+            )
         ],
       ),
     );

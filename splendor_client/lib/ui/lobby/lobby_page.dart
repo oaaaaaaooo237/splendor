@@ -5,6 +5,8 @@ import '../../core/providers/identity_provider.dart';
 import '../../core/providers/gameplay_settings_provider.dart'; // [NEW]
 import 'package:splendor_shared/splendor_shared.dart';
 import '../game/game_page.dart';
+import '../widgets/turn_duration_selector.dart';
+import '../widgets/target_score_selector.dart';
 
 // CONTEXT:
 // Purpose: Network Entry Point. Handles Server Connection, Login, Room Creation/Join.
@@ -31,6 +33,8 @@ class _LobbyPageState extends ConsumerState<LobbyPage> {
   String? _currentRoomId;
   bool _isHost = false;
   bool _isConnected = false;
+  int _turnDuration = 60; // Default for Multiplayer
+  int _targetScore = 15; // Default target
 
   @override
   void dispose() {
@@ -140,10 +144,31 @@ class _LobbyPageState extends ConsumerState<LobbyPage> {
                  const SizedBox(height: 24),
                  
                  if (_currentRoomId == null) ...[
+                    Row(
+                       children: [
+                          Expanded(
+                             child: TurnDurationSelector(
+                                currentDuration: _turnDuration,
+                                onChanged: (val) => setState(() => _turnDuration = val),
+                             ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                             child: TargetScoreSelector(
+                                targetScore: _targetScore,
+                                onChanged: (val) => setState(() => _targetScore = val),
+                             ),
+                          ),
+                       ],
+                    ),
+                    const SizedBox(height: 8),
+
                     ElevatedButton(
                        onPressed: () {
-                          final settings = ref.read(gameplaySettingsProvider);
-                          _repository!.createRoom(turnDuration: settings.turnDuration);
+                          _repository!.createRoom(
+                              turnDuration: _turnDuration,
+                              targetScore: _targetScore
+                          );
                        }, 
                        child: const Text("Create Room")
                     ),
